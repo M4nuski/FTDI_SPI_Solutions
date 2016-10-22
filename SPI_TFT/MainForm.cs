@@ -64,6 +64,7 @@ namespace SPI_TFT
 
         private int bulksize = 0;
         private USB_Control usb = new USB_Control();
+
         public MainForm()
         {
             InitializeComponent();
@@ -94,7 +95,7 @@ namespace SPI_TFT
             SignalGenerator.SPI_A0 = SignalGenerator.SPI_A0_command;
             SignalGenerator.OutputBytes[0] = b;
             SignalGenerator.OutputLength = 1;
-            usb.Transfer(); 
+            usb.Transfer();
         }
 
         private void sendDTA(byte b)
@@ -143,21 +144,15 @@ namespace SPI_TFT
             sendCMD(ST7735_COLMOD);
             sendDTA(0x06);
 
-
-
             sendCMD(ST7735_DISPON);
 
             sendCMD(ST7735_CASET);
-            sendDTA(0x00);
-            sendDTA(0x00);
-            sendDTA(0x00);
-            sendDTA(0x7F);
+            sendDTA(0x00);sendDTA(0x00);
+            sendDTA(0x00);sendDTA(0x7F);
 
             sendCMD(ST7735_RASET);
-            sendDTA(0x00);
-            sendDTA(0x00);
-            sendDTA(0x00);
-            sendDTA(0x9F);
+            sendDTA(0x00);sendDTA(0x00);
+            sendDTA(0x00);sendDTA(0x9F);
 
 
         }
@@ -166,9 +161,16 @@ namespace SPI_TFT
         {
             if (usb.IsOpen)
             {
+                sendCMD(ST7735_CASET);
+                sendDTA(0x00); sendDTA(0x00);
+                sendDTA(0x00); sendDTA(0x7F);
+
+                sendCMD(ST7735_RASET);
+                sendDTA(0x00); sendDTA(0x00);
+                sendDTA(0x00); sendDTA(0x9F);
                 sendCMD(ST7735_RAMWR);
-                using (var img = new Bitmap("D:\\downloads\\quinn.bmp"))
-                
+                using (var img = new Bitmap("D:\\Prog\\Media\\Images\\quinn.bmp"))
+
                     for (var i = 0; i < 160; i++)
                     {
                         for (var j = 0; j < 128; j++)
@@ -177,8 +179,8 @@ namespace SPI_TFT
                             sendcolor(c.R, c.G, c.B);
                         }
                     }
-                
-                sendbulk();//purge bulk buffer
+
+                sendbulk(); //purge bulk buffer
 
                 //horLine(0x0001);
                 //horLine(0x0003);
@@ -205,32 +207,32 @@ namespace SPI_TFT
 
         private void sendcolor(byte r, byte g, byte b)
         {
-        //    var rr = ((r >> 3) << 11);
-        //    var gg = ((g >> 2) << 5);
-        //    var bb = (b >> 3);
+            //    var rr = ((r >> 3) << 11);
+            //    var gg = ((g >> 2) << 5);
+            //    var bb = (b >> 3);
 
-        //    var c =  (rr | gg | bb);
+            //    var c =  (rr | gg | bb);
 
-          //  sendlong((ushort)c);
-          addtobulk(r);
+            //  sendlong((ushort)c);
+            addtobulk(r);
             addtobulk(g);
             addtobulk(b);
         }
 
         private void sendlong(ushort l)
         {
-            addtobulk((byte)(l >> 8));
-            addtobulk((byte)(l & 0x00FF));
+            addtobulk((byte) (l >> 8));
+            addtobulk((byte) (l & 0x00FF));
         }
 
         private void horLine(ushort col)
         {
             for (var i = 0; i < 128; i++)
             {
-                addtobulk((byte)(col >> 8));
-                addtobulk((byte)(col & 0x00FF));
+                addtobulk((byte) (col >> 8));
+                addtobulk((byte) (col & 0x00FF));
             }
-            sendbulk();//purge bulk buffer
+            sendbulk(); //purge bulk buffer
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -256,9 +258,9 @@ namespace SPI_TFT
         private void button6_Click(object sender, EventArgs e)
         {
             sendCMD(ST7735_FRMCTR1);
-            sendDTA(0x01);
-            sendDTA(0x04);
-            sendDTA(0x08);
+            sendDTA(0x0F);
+            sendDTA(0x3F);
+            sendDTA(0x3F);
 
             sendCMD(ST7735_RAMWR);
         }
@@ -272,6 +274,54 @@ namespace SPI_TFT
 
             sendCMD(ST7735_RAMWR);
         }
+
+        private void checkBox6_CheckedChanged(object sender, EventArgs e)
+        {
+            var dta = SignalGenerator.SetBit(0, 7, checkBox1.Checked);
+            dta = SignalGenerator.SetBit(dta, 6, checkBox2.Checked);
+            dta = SignalGenerator.SetBit(dta, 5, checkBox3.Checked);
+            dta = SignalGenerator.SetBit(dta, 4, checkBox4.Checked);
+            dta = SignalGenerator.SetBit(dta, 3, checkBox5.Checked);
+            dta = SignalGenerator.SetBit(dta, 2, checkBox6.Checked);
+
+            sendCMD(ST7735_MADCTL);
+            // d7 d6 d5 d4 d3 d2 d1 d0
+            // my mx mv ml rg mh  0  0
+
+            sendDTA(dta);
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            if (usb.IsOpen)
+            {
+                sendCMD(ST7735_CASET);
+                sendDTA(0x00); sendDTA(0x00);
+                sendDTA(0x00); sendDTA(0x9F);
+
+                sendCMD(ST7735_RASET);
+                sendDTA(0x00); sendDTA(0x00);
+                sendDTA(0x00); sendDTA(0x7F);
+
+                sendCMD(ST7735_RAMWR);
+                using (var img = new Bitmap("D:\\Prog\\Media\\Images\\legologo.bmp"))
+
+                    for (var i = 0; i < 128; i++)
+                    {
+                        for (var j = 0; j < 160; j++)
+                        {
+                            var c = img.GetPixel(j, i);
+                            sendcolor(c.R, c.G, c.B);
+                        }
+                    }
+
+                sendbulk(); //purge bulk buffer
+            }
+        }
+
+
+
+
     }
 
     public static class ExtLog

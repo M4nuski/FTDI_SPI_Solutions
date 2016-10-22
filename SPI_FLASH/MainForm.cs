@@ -108,7 +108,7 @@ namespace SPI_FLASH
                 sb.Append(" BP3:" + boolTo01(SignalGenerator.GetBit(val, 5)));
                 sb.Append(" AAI:" + boolTo01(SignalGenerator.GetBit(val, 6)));
                 sb.Append(" BPL:" + boolTo01(SignalGenerator.GetBit(val, 7)));
-            }
+            } else 
 
             if (textBox5.Text == JEDEC_ID_W25Q128FV_SPI)
             {
@@ -121,8 +121,14 @@ namespace SPI_FLASH
                 sb.Append(" TP:" + boolTo01(SignalGenerator.GetBit(val, 5)));
                 sb.Append(" SEC:" + boolTo01(SignalGenerator.GetBit(val, 6)));
                 sb.Append(" SPR0:" + boolTo01(SignalGenerator.GetBit(val, 7)));
+            } else if (textBox5.Text == JEDEC_ID_W25Q128FV_QPI)
+            {
+                sb.Append("W25Q128FV QPI Mode Not Implemented.");
             }
-            if (textBox5.Text == JEDEC_ID_W25Q128FV_QPI) sb.Append("W25Q128FV QPI Mode Not Implemented.");
+            else
+            {
+                tobin(val);
+            }
 
                 return sb.ToString();
         }

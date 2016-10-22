@@ -128,6 +128,7 @@ namespace SPI_TFT
         {
             var result = true;
             uint res = 0;
+            USB_Interface.Purge(FTDI.FT_PURGE.FT_PURGE_RX | FTDI.FT_PURGE.FT_PURGE_TX);
             var ftStatus = USB_Interface.Write(OutputBuffer, dataSize, ref res);
             if ((ftStatus != FTDI.FT_STATUS.FT_OK) && (res != dataSize))
             {
