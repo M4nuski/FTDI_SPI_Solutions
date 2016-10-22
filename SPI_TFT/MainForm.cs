@@ -169,7 +169,7 @@ namespace SPI_TFT
                 sendDTA(0x00); sendDTA(0x00);
                 sendDTA(0x00); sendDTA(0x9F);
                 sendCMD(ST7735_RAMWR);
-                using (var img = new Bitmap("D:\\Prog\\Media\\Images\\quinn.bmp"))
+                using (var img = new Bitmap("quinn.bmp"))
 
                     for (var i = 0; i < 160; i++)
                     {
@@ -304,7 +304,7 @@ namespace SPI_TFT
                 sendDTA(0x00); sendDTA(0x7F);
 
                 sendCMD(ST7735_RAMWR);
-                using (var img = new Bitmap("D:\\Prog\\Media\\Images\\legologo.bmp"))
+                using (var img = new Bitmap("legologo.bmp"))
 
                     for (var i = 0; i < 128; i++)
                     {
