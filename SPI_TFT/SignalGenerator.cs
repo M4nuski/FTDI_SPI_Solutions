@@ -6,7 +6,7 @@ namespace SPI_TFT
     {
         // SPI version directly to FTDI UM245R
         //Interface
-        public static byte[] OutputBytes = new byte[3200];
+        public static byte[] OutputBytes = new byte[65535];
         public static int OutputLength = 0;
         private const int SPI_SDA_bit = 2;
         private const int SPI_SCK_bit = 3; // latch on clk up
@@ -44,7 +44,7 @@ namespace SPI_TFT
 
         public static int Serialize(ref byte[] buffer)
         {
-            if ((OutputLength <= 3200) && (OutputLength > 0))
+            if ((OutputLength <= 65535) && (OutputLength > 0))
             {
                 //reset index
                 _buffer_index = 0;

@@ -35,6 +35,9 @@
     <Reference Include="FTD2XX_NET">
       <HintPath>..\FTD2XX_NET.dll</HintPath>
     </Reference>
+    <Reference Include="M4nuskomponents">
+      <HintPath>..\..\M4nuskomponents\ClassLibrary\bin\Release\M4nuskomponents.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -89,6 +92,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="quinn.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ss.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

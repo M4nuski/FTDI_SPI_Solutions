@@ -44,6 +44,7 @@
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.checkBox6 = new System.Windows.Forms.CheckBox();
             this.button8 = new System.Windows.Forms.Button();
+            this.rgbmodeCheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // loadDeviceButton
@@ -212,11 +213,24 @@
             this.button8.UseVisualStyleBackColor = true;
             this.button8.Click += new System.EventHandler(this.button8_Click);
             // 
+            // rgbmodeCheckBox
+            // 
+            this.rgbmodeCheckBox.AutoSize = true;
+            this.rgbmodeCheckBox.Checked = true;
+            this.rgbmodeCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.rgbmodeCheckBox.Location = new System.Drawing.Point(271, 68);
+            this.rgbmodeCheckBox.Name = "rgbmodeCheckBox";
+            this.rgbmodeCheckBox.Size = new System.Drawing.Size(119, 17);
+            this.rgbmodeCheckBox.TabIndex = 16;
+            this.rgbmodeCheckBox.Text = "chk:666 unchk:444";
+            this.rgbmodeCheckBox.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 403);
+            this.Controls.Add(this.rgbmodeCheckBox);
             this.Controls.Add(this.button8);
             this.Controls.Add(this.checkBox6);
             this.Controls.Add(this.checkBox5);
@@ -258,6 +272,7 @@
         private System.Windows.Forms.CheckBox checkBox5;
         private System.Windows.Forms.CheckBox checkBox6;
         private System.Windows.Forms.Button button8;
+        private System.Windows.Forms.CheckBox rgbmodeCheckBox;
     }
 }
 

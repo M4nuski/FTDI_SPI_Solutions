@@ -62,7 +62,10 @@ namespace SPI_TFT
         private const byte ST7735_GMCTRP1 = 0xE0;
         private const byte ST7735_GMCTRN1 = 0xE1;
 
-        private int bulksize = 0;
+        private int bulksize;
+        private int numPixels;
+        private byte pixelDataBuffer;
+
         private USB_Control usb = new USB_Control();
 
         public MainForm()
@@ -108,7 +111,7 @@ namespace SPI_TFT
 
         private void addtobulk(byte b)
         {
-            if (bulksize >= 3200)
+            if (bulksize >= 65535)
             {
                 sendbulk();
             }
@@ -168,6 +171,18 @@ namespace SPI_TFT
                 sendCMD(ST7735_RASET);
                 sendDTA(0x00); sendDTA(0x00);
                 sendDTA(0x00); sendDTA(0x9F);
+
+                numPixels = 0;
+                if (rgbmodeCheckBox.Checked)
+                {
+                    sendCMD(ST7735_COLMOD);
+                    sendDTA(0x06); //rgb666
+                }
+                else
+                {
+                    sendCMD(ST7735_COLMOD);
+                    sendDTA(0x03); //rgb444
+                }
                 sendCMD(ST7735_RAMWR);
                 using (var img = new Bitmap("quinn.bmp"))
 
@@ -207,16 +222,35 @@ namespace SPI_TFT
 
         private void sendcolor(byte r, byte g, byte b)
         {
-            //    var rr = ((r >> 3) << 11);
-            //    var gg = ((g >> 2) << 5);
-            //    var bb = (b >> 3);
+            if (rgbmodeCheckBox.Checked) // RGB666 - sent as RGB888
+            {
+                addtobulk(r);
+                addtobulk(g);
+                addtobulk(b);
+            }
+            else                        // RGB444
+            {
+                if ((numPixels % 2) == 0) //"first" pixel
+                {
+                    pixelDataBuffer = (byte)(r & 0xF0);     //R1 HN
+                    pixelDataBuffer |= (byte)(g >> 4);      //G1 LN
+                    addtobulk(pixelDataBuffer);             //Byte 0 : R1 G1
 
-            //    var c =  (rr | gg | bb);
+                    pixelDataBuffer = (byte)(b & 0xF0);     //B1 HN
+                }
+                else                    //"second" pixel
+                {
+                    pixelDataBuffer |= (byte)(r >> 4);      //R2 LN
+                    addtobulk(pixelDataBuffer);             //Byte 1 : B1 R2
 
-            //  sendlong((ushort)c);
-            addtobulk(r);
-            addtobulk(g);
-            addtobulk(b);
+                    pixelDataBuffer = (byte)(g  & 0xF0);   //G2 HN
+                    pixelDataBuffer |= (byte)(b >> 4);      //B2 LN
+                    addtobulk(pixelDataBuffer);             //Byte 2 : G2 B2
+                }
+                numPixels++;
+            }
+
+
         }
 
         private void sendlong(ushort l)
@@ -303,6 +337,17 @@ namespace SPI_TFT
                 sendDTA(0x00); sendDTA(0x00);
                 sendDTA(0x00); sendDTA(0x7F);
 
+                numPixels = 0;
+                if (rgbmodeCheckBox.Checked)
+                {
+                    sendCMD(ST7735_COLMOD);
+                    sendDTA(0x06); //rgb666
+                }
+                else
+                {
+                    sendCMD(ST7735_COLMOD);
+                    sendDTA(0x03); //rgb444
+                }
                 sendCMD(ST7735_RAMWR);
                 using (var img = new Bitmap("legologo.bmp"))
 
@@ -314,7 +359,6 @@ namespace SPI_TFT
                             sendcolor(c.R, c.G, c.B);
                         }
                     }
-
                 sendbulk(); //purge bulk buffer
             }
         }

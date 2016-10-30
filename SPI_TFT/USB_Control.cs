@@ -6,7 +6,7 @@ namespace SPI_TFT
     public class USB_Control
     {
         private FTDI USB_Interface = new FTDI();
-        public byte[] OutputBuffer = new byte[64000];
+        public byte[] OutputBuffer = new byte[65535*20];
         public byte[] InputBuffer { get; set; }
         public int dataSize { get; private set; }
         public bool IsOpen => USB_Interface.IsOpen;
@@ -128,7 +128,6 @@ namespace SPI_TFT
         {
             var result = true;
             uint res = 0;
-            USB_Interface.Purge(FTDI.FT_PURGE.FT_PURGE_RX | FTDI.FT_PURGE.FT_PURGE_TX);
             var ftStatus = USB_Interface.Write(OutputBuffer, dataSize, ref res);
             if ((ftStatus != FTDI.FT_STATUS.FT_OK) && (res != dataSize))
             {
@@ -145,6 +144,7 @@ namespace SPI_TFT
                     ExtLog.AddLine($"Failed to write data (error {ftStatus}) ({res}/{dataSize})");
                     result = false;
                 }
+                USB_Interface.Purge(FTDI.FT_PURGE.FT_PURGE_RX | FTDI.FT_PURGE.FT_PURGE_TX);
             }
             return result;
         }

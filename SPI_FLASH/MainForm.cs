@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Globalization;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
+// ReSharper disable UnusedMember.Local
 
 namespace SPI_FLASH
 {
     public partial class MainForm : Form
     {
+
         private const byte SPI_read = 0x03; //Aa3 Du0 Da1-inf
         private const byte SPI_HS_read = 0x0B; //Aa3 Du1 Da0
         private const byte SPI_4K_sector_erease = 0x20; //Aa3 Du0 Da0
@@ -47,7 +45,25 @@ namespace SPI_FLASH
         private const string JEDEC_ID_W25Q128FV_QPI = "EF6018";
         private const string JEDEC_ID_SST25VF016B = "BF2541";
 
+        private const int SRR1_bit_Busy = 0;
+        private const int SRR1_bit_WriteEnabled = 1;
+        private const int SRR1_bit_BP0 = 2;
+        private const int SRR1_bit_BP1 = 3;
+        private const int SRR1_bit_BP2 = 4;
+        private const int SRR1_bit_TP = 5;
+        private const int SRR1_bit_SEC = 6;
+        private const int SRR1_bit_SRP0 = 7;
+
         private USB_Control usb = new USB_Control();
+
+        public struct rawTFTDTA //to load and flash TFT data for lego block
+        {
+            public byte COLMOD; // 444:33h 666:66h : set COLMOD
+            public byte MADCTL; //set MADCTL
+            public byte num_images; // 0-255
+            public ushort bytes_per_image; // 444:7800h 666:F000h
+            public byte[][] data; // new byte[num_images][bytes_per_image] - sector alignment to be done on transfer
+        }
 
         public MainForm()
         {
@@ -93,44 +109,46 @@ namespace SPI_FLASH
             return Convert.ToString(val, 2).PadLeft(8, '0');
         }
 
-        private  string formatSSR(byte val)
+        private string formatSSR(byte val)
         {
             var sb = new StringBuilder();
 
             if (textBox5.Text == JEDEC_ID_SST25VF016B)
             {
-                sb.Append(" BUSY:" + boolTo01(SignalGenerator.GetBit(val, 0)));
-                sb.Append(" WEL:" + boolTo01(SignalGenerator.GetBit(val, 1)));
-                sb.Append(" BP0:" + boolTo01(SignalGenerator.GetBit(val, 2)));
-                sb.Append(" BP1:" + boolTo01(SignalGenerator.GetBit(val, 3)));
+                sb.Append(" BUSY:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_Busy)));
+                sb.Append(" WEL:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_WriteEnabled)));
+                sb.Append(" BP0:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_BP0)));
+                sb.Append(" BP1:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_BP1)));
 
-                sb.Append(" BP2:" + boolTo01(SignalGenerator.GetBit(val, 4)));
+                sb.Append(" BP2:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_BP2)));
                 sb.Append(" BP3:" + boolTo01(SignalGenerator.GetBit(val, 5)));
                 sb.Append(" AAI:" + boolTo01(SignalGenerator.GetBit(val, 6)));
                 sb.Append(" BPL:" + boolTo01(SignalGenerator.GetBit(val, 7)));
-            } else 
+            }
+            else
 
             if (textBox5.Text == JEDEC_ID_W25Q128FV_SPI)
             {
-                sb.Append(" BUSY:" + boolTo01(SignalGenerator.GetBit(val, 0)));
-                sb.Append(" WEL:" + boolTo01(SignalGenerator.GetBit(val, 1)));
-                sb.Append(" BP0:" + boolTo01(SignalGenerator.GetBit(val, 2)));
-                sb.Append(" BP1:" + boolTo01(SignalGenerator.GetBit(val, 3)));
+                sb.Append(" BUSY:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_Busy)));
+                sb.Append(" WEL:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_WriteEnabled)));
+                sb.Append(" BP0:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_BP0)));
+                sb.Append(" BP1:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_BP1)));
 
-                sb.Append(" BP2:" + boolTo01(SignalGenerator.GetBit(val, 4)));
-                sb.Append(" TP:" + boolTo01(SignalGenerator.GetBit(val, 5)));
-                sb.Append(" SEC:" + boolTo01(SignalGenerator.GetBit(val, 6)));
-                sb.Append(" SPR0:" + boolTo01(SignalGenerator.GetBit(val, 7)));
-            } else if (textBox5.Text == JEDEC_ID_W25Q128FV_QPI)
+                sb.Append(" BP2:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_BP2)));
+                sb.Append(" TP:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_TP)));
+                sb.Append(" SEC:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_SEC)));
+                sb.Append(" SPR0:" + boolTo01(SignalGenerator.GetBit(val, SRR1_bit_SRP0)));
+            }
+            else if (textBox5.Text == JEDEC_ID_W25Q128FV_QPI)
             {
                 sb.Append("W25Q128FV QPI Mode Not Implemented.");
             }
             else
             {
-                tobin(val);
+                sb.Append(tobin(val));
             }
 
-                return sb.ToString();
+            return sb.ToString();
         }
 
         private static string boolTo01(bool val)
@@ -181,7 +199,7 @@ namespace SPI_FLASH
 
             SignalGenerator.OutputBytes[0] = command;
             var length = 1;
-            
+
             for (var i = 0; i < numDummy; i++)
             {
                 SignalGenerator.OutputBytes[length] = 0;
@@ -210,7 +228,8 @@ namespace SPI_FLASH
                 setCommand(SPI_read_SSR3, 0, 1);
                 usb.Transfer();
                 ExtLog.AddLine("SSR3:" + tobin(SignalGenerator.InputBytes[1]));
-            } else ExtLog.AddLine("Not Supported.");
+            }
+            else ExtLog.AddLine("Not Supported.");
         }
 
         private void button5_Click(object sender, EventArgs e)//WE
@@ -242,36 +261,28 @@ namespace SPI_FLASH
 
         private void button8_Click(object sender, EventArgs e)
         {
-            var addr = int.Parse(textBox2.Text);
-            var a0 = (addr & 0x000000FF);
-            var a1 = (addr & 0x0000FF00) >> 8;
-            var a2 = (addr & 0x00FF0000) >> 16;
+            var addr = getAddress(textBox2.Text);
 
-            setCommand(SPI_4K_sector_erease, (byte)a2, (byte)a1, (byte)a0, 0, 0);
+            setCommand(SPI_4K_sector_erease, addr.Item3, addr.Item2, addr.Item1, 0, 0);
             usb.Transfer();
             ExtLog.AddLine("4K Sector Erase...");
         }
 
         private void button9_Click(object sender, EventArgs e)
         {
-            var addr = int.Parse(textBox2.Text);
-            var a0 = (addr & 0x000000FF);
-            var a1 = (addr & 0x0000FF00) >> 8;
-            var a2 = (addr & 0x00FF0000) >> 16;
+            var addr = getAddress(textBox2.Text);
 
-            setCommand(SPI_32K_block_erease, (byte)a2, (byte)a1, (byte)a0, 0, 0);
+            setCommand(SPI_32K_block_erease, addr.Item3, addr.Item2, addr.Item1, 0, 0);
             usb.Transfer();
             ExtLog.AddLine("32K Block Erase...");
         }
 
         private void button11_Click(object sender, EventArgs e)
         {
-            var addr = int.Parse(textBox2.Text);
-            var a0 = (addr & 0x000000FF);
-            var a1 = (addr & 0x0000FF00) >> 8;
-            var a2 = (addr & 0x00FF0000) >> 16;
+            var addr = getAddress(textBox2.Text);
 
-            setCommand(SPI_64K_block_erease, (byte)a2, (byte)a1, (byte)a0, 0, 0);
+
+            setCommand(SPI_64K_block_erease, addr.Item3, addr.Item2, addr.Item1, 0, 0);
             usb.Transfer();
             ExtLog.AddLine("64K Block Erase...");
         }
@@ -285,14 +296,10 @@ namespace SPI_FLASH
 
         private void button12_Click(object sender, EventArgs e)
         {
-            var addr = int.Parse(textBox2.Text);
-            var a0 = (addr & 0x000000FF);
-            var a1 = (addr & 0x0000FF00) >> 8;
-            var a2 = (addr & 0x00FF0000) >> 16;
-
+            var addr = getAddress(textBox2.Text);
             var numBytes = int.Parse(textBox3.Text);
-           // if (numBytes > 255) numBytes = 255;
-            setCommand(SPI_read, (byte)a2, (byte)a1, (byte)a0, 0, numBytes);
+            // if (numBytes > 255) numBytes = 255;
+            setCommand(SPI_read, addr.Item3, addr.Item2, addr.Item1, 0, numBytes);
             ExtLog.AddLine("Reading byte(s)...");
             usb.Transfer();
             var sb = "";
@@ -305,10 +312,7 @@ namespace SPI_FLASH
 
         private void button13_Click(object sender, EventArgs e)
         {
-            var addr = int.Parse(textBox2.Text);
-            var a0 = (addr & 0x000000FF);
-            var a1 = (addr & 0x0000FF00) >> 8;
-            var a2 = (addr & 0x00FF0000) >> 16;
+            var addr = getAddress(textBox2.Text);
 
             var dta = textBox4.Text.Split(',');
             var bdta = new byte[dta.Length];
@@ -316,8 +320,8 @@ namespace SPI_FLASH
             {
                 bdta[i] = byte.Parse(dta[i].Trim(), NumberStyles.AllowHexSpecifier);
             }
-            
-            setCommand(SPI_byte_program, (byte)a2, (byte)a1, (byte)a0, 0, dta.Length);
+
+            setCommand(SPI_byte_program, addr.Item3, addr.Item2, addr.Item1, 0, dta.Length);
             for (var i = 0; i < dta.Length; i++)
             {
                 SignalGenerator.OutputBytes[4 + i] = bdta[i];
@@ -327,9 +331,144 @@ namespace SPI_FLASH
             usb.Transfer();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private static Tuple<byte, byte, byte> getAddress(string str)
         {
+            return getAddress(int.Parse(str));
+        }
 
+        private static Tuple<byte, byte, byte> getAddress(int addr)
+        {
+            return new Tuple<byte, byte, byte>((byte)(addr & 0x000000FF), (byte)((addr & 0x0000FF00) >> 8), (byte)((addr & 0x00FF0000) >> 16));
+        }
+
+        private void button14_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                var follower = "open";
+                var dump = new rawTFTDTA();
+
+                try
+                {
+                    var fileStream = File.OpenRead(openFileDialog1.FileName);
+                    var reader = new BinaryReader(fileStream);
+                    follower = "header";
+                    dump.COLMOD = reader.ReadByte();
+                    dump.MADCTL = reader.ReadByte();
+                    dump.num_images = reader.ReadByte();
+                    dump.bytes_per_image = reader.ReadUInt16();
+                    follower = "data";
+                    dump.data = new byte[dump.num_images][];
+                    for (var i = 0; i < dump.num_images; i++)
+                    {
+                        dump.data[i] = reader.ReadBytes(dump.bytes_per_image);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ExtLog.AddLine("Error while reading file " + follower + " : " + ex.Message);
+                }
+
+                ExtLog.AddLine("COLMOD: " + dump.COLMOD.ToString("X2"));
+                ExtLog.AddLine("MADCTL: " + dump.MADCTL.ToString("X2"));
+                ExtLog.AddLine("num_images: " + dump.num_images.ToString("X2"));
+                ExtLog.AddLine("bytes_per_image: " + dump.bytes_per_image.ToString("X4"));
+
+                try
+                {
+                    if (!usb.IsOpen) throw new Exception("USB Interface not open");
+                    if (textBox5.Text != JEDEC_ID_W25Q128FV_SPI) throw new Exception("Flash type not supported");
+                    writeHeader(dump);
+                    writeData(dump);
+                }
+                catch (Exception ex)
+                {
+                    ExtLog.AddLine("Error writing memory: " + ex.Message);
+                }
+            }
+        }
+
+        private void writeHeader(rawTFTDTA dump)
+        {
+            //writeEnable
+            button5_Click(null, null);
+            //erease64Block
+            textBox2.Text = "0";
+            button11_Click(null, null);
+
+            //wait for !busy
+            waitFlashNotBusy(50, 20);
+
+            //writeEnable
+            button5_Click(null, null);
+            //write by 256
+            setCommand(SPI_byte_program, 0, 0, 0, 0, 5);
+
+            SignalGenerator.OutputBytes[4] = dump.COLMOD;
+            SignalGenerator.OutputBytes[5] = dump.MADCTL;
+            SignalGenerator.OutputBytes[6] = dump.num_images;
+            SignalGenerator.OutputBytes[7] = (byte)(dump.bytes_per_image >> 8);
+            SignalGenerator.OutputBytes[8] = (byte)(dump.bytes_per_image & 0x00FF);
+            ExtLog.AddLine("Writing header...");
+            usb.Transfer();
+        }
+
+        private void writeData(rawTFTDTA dump)
+        {
+            for (var i = 0; i < dump.data.Length; i++)
+            {
+
+                //erease64Block
+                setCommand(SPI_write_enable, 0, 0);
+                usb.Transfer();
+                textBox2.Text = ((1 + i) * 65536).ToString("D");
+                button11_Click(null, null);
+
+                //wait for !busy
+                waitFlashNotBusy(60, 20);
+
+                var offset = 0;
+                while (offset < dump.data[i].Length)
+                {
+                    var sentData = Math.Min(256, dump.data[i].Length - offset);
+
+                    //writeEnable
+                    setCommand(SPI_write_enable, 0, 0);
+                    usb.Transfer();
+
+                    var addr = getAddress(((1 + i) * 65536) + offset);
+
+                    setCommand(SPI_byte_program, addr.Item3, addr.Item2, addr.Item1, 0, sentData);
+
+                    for (var j = 0; j < sentData; j++)
+                    {
+                        SignalGenerator.OutputBytes[4 + j] = dump.data[i][offset + j];
+                    }
+
+                    ExtLog.AddLine("Writing " + (100 * offset / dump.data[i].Length) + "% of image " + i);
+
+                    usb.Transfer();
+
+                    waitFlashNotBusy(5, 20);
+
+                    offset += sentData;
+                }
+            }
+
+        }
+
+        private void waitFlashNotBusy(int sleep, int num_tries)
+        {
+            for (var i = 0; i < num_tries; i++)
+            {
+                Thread.Sleep(sleep);
+                ExtLog.AddLine("Checking Status...");
+                setCommand(SPI_read_SSR, 0, 1);
+                usb.Transfer();
+                if (!SignalGenerator.GetBit(SignalGenerator.InputBytes[1], SRR1_bit_Busy)) return;
+                ExtLog.AddLine($"Busy ({sleep * i} ms elapsed)");
+            }
+            throw new Exception($"Still Busy after timeout of {sleep*num_tries} ms");
         }
     }
 

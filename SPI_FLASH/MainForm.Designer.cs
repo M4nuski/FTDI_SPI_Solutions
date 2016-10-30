@@ -49,6 +49,8 @@
             this.textBox4 = new System.Windows.Forms.TextBox();
             this.textBox5 = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.button14 = new System.Windows.Forms.Button();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.SuspendLayout();
             // 
             // textBox1
@@ -249,11 +251,27 @@
             this.label3.Size = new System.Drawing.Size(0, 13);
             this.label3.TabIndex = 23;
             // 
+            // button14
+            // 
+            this.button14.Location = new System.Drawing.Point(141, 215);
+            this.button14.Name = "button14";
+            this.button14.Size = new System.Drawing.Size(123, 23);
+            this.button14.TabIndex = 24;
+            this.button14.Text = "Load and Flash";
+            this.button14.UseVisualStyleBackColor = true;
+            this.button14.Click += new System.EventHandler(this.button14_Click);
+            // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.Filter = "TFT data|*.tft_dta";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(844, 386);
+            this.Controls.Add(this.button14);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBox5);
             this.Controls.Add(this.textBox4);
@@ -277,7 +295,6 @@
             this.Controls.Add(this.button1);
             this.Name = "MainForm";
             this.Text = "Flash Control trough SPI/USB";
-            this.Load += new System.EventHandler(this.MainForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -306,6 +323,8 @@
         private System.Windows.Forms.TextBox textBox4;
         private System.Windows.Forms.TextBox textBox5;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button button14;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }
 
