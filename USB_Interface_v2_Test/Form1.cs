@@ -46,6 +46,9 @@ namespace USB_Interface_v2_Test
             if (usb.IsOpen)
             {
 
+                var preByte0 = SignalGenerator.OutputByte0;
+                var preByte1 = SignalGenerator.OutputByte1;
+
                 if (!radioButton1.Checked)
                 {
                     var b = radioButton2.Checked ? (signalSwap ? (byte)0xAA : (byte)0x55):(signalSwap? (byte)0x00 : (byte)0xFF);
@@ -76,11 +79,11 @@ namespace USB_Interface_v2_Test
                     sb.Clear();
 
                     sb.Append("Input0: ");
-                    var diff = (byte)(SignalGenerator.InputByte0 ^ SignalGenerator.OutputByte0);
+                    var diff = (byte)(SignalGenerator.InputByte0 ^ preByte0);
                     sb.Append(Convert.ToString(diff, 2).PadLeft(8, '0'));
 
                     sb.Append(" Input1: ");
-                    diff = (byte)(SignalGenerator.InputByte1 ^ SignalGenerator.OutputByte1);
+                    diff = (byte)(SignalGenerator.InputByte1 ^ preByte1);
                     sb.Append(Convert.ToString(diff, 2).PadLeft(8, '0'));
 
                     newLoopbackString = sb.ToString();
