@@ -37,12 +37,13 @@
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton3 = new System.Windows.Forms.RadioButton();
+            this.outDataCheckbox = new System.Windows.Forms.CheckBox();
             this.binarySelector5 = new USB_Interface_v2_Test.BinarySelector();
             this.binarySelector4 = new USB_Interface_v2_Test.BinarySelector();
             this.binarySelector3 = new USB_Interface_v2_Test.BinarySelector();
             this.binarySelector2 = new USB_Interface_v2_Test.BinarySelector();
             this.binarySelector1 = new USB_Interface_v2_Test.BinarySelector();
-            this.outDataCheckbox = new System.Windows.Forms.CheckBox();
+            this.LBcheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // button1
@@ -119,6 +120,16 @@
             this.radioButton3.Text = "On/Off BitSwap";
             this.radioButton3.UseVisualStyleBackColor = true;
             // 
+            // outDataCheckbox
+            // 
+            this.outDataCheckbox.AutoSize = true;
+            this.outDataCheckbox.Location = new System.Drawing.Point(600, 16);
+            this.outDataCheckbox.Name = "outDataCheckbox";
+            this.outDataCheckbox.Size = new System.Drawing.Size(145, 17);
+            this.outDataCheckbox.TabIndex = 17;
+            this.outDataCheckbox.Text = "Show Output Buffer Data";
+            this.outDataCheckbox.UseVisualStyleBackColor = true;
+            // 
             // binarySelector5
             // 
             this.binarySelector5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
@@ -166,21 +177,22 @@
             this.binarySelector1.Size = new System.Drawing.Size(272, 72);
             this.binarySelector1.TabIndex = 7;
             // 
-            // outDataCheckbox
+            // LBcheckBox
             // 
-            this.outDataCheckbox.AutoSize = true;
-            this.outDataCheckbox.Location = new System.Drawing.Point(600, 16);
-            this.outDataCheckbox.Name = "outDataCheckbox";
-            this.outDataCheckbox.Size = new System.Drawing.Size(145, 17);
-            this.outDataCheckbox.TabIndex = 17;
-            this.outDataCheckbox.Text = "Show Output Buffer Data";
-            this.outDataCheckbox.UseVisualStyleBackColor = true;
+            this.LBcheckBox.AutoSize = true;
+            this.LBcheckBox.Location = new System.Drawing.Point(108, 44);
+            this.LBcheckBox.Name = "LBcheckBox";
+            this.LBcheckBox.Size = new System.Drawing.Size(175, 17);
+            this.LBcheckBox.TabIndex = 18;
+            this.LBcheckBox.Text = "Validate B0-B0 B1-B1 loopback";
+            this.LBcheckBox.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(779, 537);
+            this.Controls.Add(this.LBcheckBox);
             this.Controls.Add(this.outDataCheckbox);
             this.Controls.Add(this.radioButton3);
             this.Controls.Add(this.radioButton2);
@@ -219,6 +231,7 @@
         private System.Windows.Forms.RadioButton radioButton2;
         private System.Windows.Forms.RadioButton radioButton3;
         private System.Windows.Forms.CheckBox outDataCheckbox;
+        private System.Windows.Forms.CheckBox LBcheckBox;
     }
 }
 

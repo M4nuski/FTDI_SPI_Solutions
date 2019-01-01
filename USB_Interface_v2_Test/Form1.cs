@@ -11,6 +11,8 @@ namespace USB_Interface_v2_Test
 
         private bool signalSwap;
 
+        private string loopBackResults = "";
+
         public Form1()
         {
             InitializeComponent();
@@ -63,6 +65,32 @@ namespace USB_Interface_v2_Test
 
                 binarySelector4.ChangeValue(SignalGenerator.InputByte0);
                 binarySelector5.ChangeValue(SignalGenerator.InputByte1);
+
+
+
+
+                if (LBcheckBox.Checked)
+                {
+                    var newLoopbackString = "";
+
+                    sb.Clear();
+
+                    sb.Append("Input0: ");
+                    var diff = (byte)(SignalGenerator.InputByte0 ^ SignalGenerator.OutputByte0);
+                    sb.Append(Convert.ToString(diff, 2).PadLeft(8, '0'));
+
+                    sb.Append(" Input1: ");
+                    diff = (byte)(SignalGenerator.InputByte1 ^ SignalGenerator.OutputByte1);
+                    sb.Append(Convert.ToString(diff, 2).PadLeft(8, '0'));
+
+                    newLoopbackString = sb.ToString();
+
+                    if (newLoopbackString != loopBackResults)
+                    {
+                        ExtLog.AddLine(newLoopbackString);
+                    }
+                    loopBackResults = newLoopbackString; 
+                }
             }
         }
 

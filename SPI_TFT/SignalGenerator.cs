@@ -7,7 +7,7 @@ namespace SPI_TFT
         // SPI version directly to FTDI UM245R
         //Interface
         public static byte[] OutputBytes = new byte[65535];
-        public static int OutputLength = 0;
+        public static int OutputLength;
         private const int SPI_SDA_bit = 2;
         private const int SPI_SCK_bit = 3; // latch on clk up
 
@@ -62,7 +62,7 @@ namespace SPI_TFT
                     }
                 }
 
-                //dummy bit to set CS low
+                //dummy bit to set CS high
                 buffer[_buffer_index] = genByte(false, false, SPI_CS_default);
                 OutputLength = 0;
                 return _buffer_index;

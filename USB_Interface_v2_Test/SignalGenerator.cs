@@ -5,8 +5,8 @@
         //Interface
         public static byte OutputByte0, OutputByte1, OutputByte2;
         public static byte InputByte0, InputByte1;
-
-        //Control signals (v2.0 - v2v2)
+        
+        //Control signals (v2.0 - v2.2)
         private const int clock_bit = 7;
 
         private const int usb_to_outputs_bit = 3;
