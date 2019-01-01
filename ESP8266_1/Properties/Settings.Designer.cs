@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SPI_FLASH.Properties
+namespace ESP8266_1.Properties
 {
 
 
