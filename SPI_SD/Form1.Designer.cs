@@ -69,7 +69,7 @@
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox1.Size = new System.Drawing.Size(776, 677);
+            this.textBox1.Size = new System.Drawing.Size(776, 762);
             this.textBox1.TabIndex = 1;
             this.textBox1.WordWrap = false;
             // 
@@ -111,7 +111,7 @@
             this.button5.TabIndex = 5;
             this.button5.Text = "Read Address (HEX)";
             this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button5_Click);
+            this.button5.Click += new System.EventHandler(this.button_ReadBlock_Click);
             // 
             // textBoxAddr0
             // 
@@ -231,7 +231,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 856);
+            this.ClientSize = new System.Drawing.Size(800, 941);
             this.Controls.Add(this.textBoxReadBlockHex);
             this.Controls.Add(this.button8);
             this.Controls.Add(this.textBoxReadBlockDec);
