@@ -146,7 +146,7 @@ namespace SPI_SD
                     ExtLog.AddLine($"Failed to write data (error {ftStatus}) ({res}/{dataSize})");
                     result = false;
                 }
-                USB_Interface.Purge(FTDI.FT_PURGE.FT_PURGE_RX | FTDI.FT_PURGE.FT_PURGE_TX);
+           //     USB_Interface.Purge(FTDI.FT_PURGE.FT_PURGE_RX | FTDI.FT_PURGE.FT_PURGE_TX);
             }
             return result;
         }
@@ -154,6 +154,7 @@ namespace SPI_SD
         public byte ChangeCS(bool CS)
         {
             SignalGenerator.SPI_CS = CS;
+         //   SignalGenerator.purgeLeading1s();
             return BitBang(SignalGenerator.genByte(true, true));
         }
 
@@ -175,6 +176,7 @@ namespace SPI_SD
                     USB_Interface.Close();
                     ExtLog.AddLine($"Failed to write data (error {ftStatus}) ({res}/1)");
                 }
+              //  USB_Interface.Purge(FTDI.FT_PURGE.FT_PURGE_RX | FTDI.FT_PURGE.FT_PURGE_TX);
             }
             return RawInputBuffer[0];
         }

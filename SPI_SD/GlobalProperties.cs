@@ -6,7 +6,7 @@ namespace SPI_SD
     static class GlobalProperties
     {
         //Interface config
-        public static uint baudRate = 14400;
+        public static uint baudRate = 2400;//14400;
         public static byte portDirectionMask = 23;// 23 = 0x17 = b'00010111'
         // 0001 0111 
         // FTDI pinout

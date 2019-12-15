@@ -19,6 +19,8 @@ namespace SPI_SD
         public static int OutputDataLength;
         public static int InputDataLength;
 
+        private static bool _purgeLeading1s = true;
+
         // Interface
         private const int SPI_3v3_bit = 0;
         private const int SPI_SCK_bit = 1; // latch on clk up
@@ -69,6 +71,8 @@ namespace SPI_SD
         }
 
 
+
+
         public static int Serialize(ref byte[] SPIDataBuffer)
         {
             if ((OutputDataLength <= 65535) && (OutputDataLength > 0))
@@ -97,17 +101,28 @@ namespace SPI_SD
             return 0;
         }
 
+        public static void purgeLeading1s()
+        {
+            _purgeLeading1s = true;
+        }
         public static void Deserialize(byte[] SPIDataBuffer, int buflen)
         {
             InputDataLength = 0;
-            ExtLog.AddLine("Decoding " + buflen + " data");
+    //        ExtLog.AddLine("Decoding " + buflen + " data");
             var bitIndex = 0;
             // skip trailing 0s
-            while ((GetBit(SPIDataBuffer[bitIndex], SPI_MISO_bit) == false) && (bitIndex < buflen)) bitIndex++;
-            ExtLog.AddLine("Skipped 0s, index at " + bitIndex);
+            //      while ((GetBit(SPIDataBuffer[bitIndex], SPI_MISO_bit) == false) && (bitIndex < buflen)) bitIndex++;
+            //    ExtLog.AddLine("Skipped 0s, index at " + bitIndex);
+
+
             // skip idling 1s
-            while ((GetBit(SPIDataBuffer[bitIndex], SPI_MISO_bit) == true) && (bitIndex < buflen)) bitIndex++;
-            ExtLog.AddLine("Skipped idle 1s, index at " + bitIndex);
+            if (_purgeLeading1s)
+            {
+                while ((GetBit(SPIDataBuffer[bitIndex], SPI_MISO_bit) == true) && (bitIndex < buflen)) bitIndex++;
+
+                _purgeLeading1s = false;
+            }
+            // ExtLog.AddLine("Skipped idle 1s, index at " + bitIndex);
 
             var byteIndex = 0;
             // check at least 16/2 bits left to read

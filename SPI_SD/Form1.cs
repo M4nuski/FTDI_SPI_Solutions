@@ -41,7 +41,6 @@ namespace SPI_SD
         {
             usb.ChangeCS(true);
 
-
             // cs high, data high
             // at least 74 clocks 
             // cs to 0
@@ -51,98 +50,48 @@ namespace SPI_SD
             // receive ack 8 bits 
 
             ExtLog.AddLine("Init");
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 20; i++)
             {
                 SignalGenerator.OutputDataBytes[i] = 255;
             }
-            SignalGenerator.OutputDataLength = 10;
+            SignalGenerator.OutputDataLength = 20;
             usb.Transfer();
 
+
             usb.ChangeCS(false);
+
 
             ExtLog.AddLine("Reset to SPI (CMD0)");
-            for (int i = 0; i < 32; i++)
+            sendCmd(0, 0, 0, 0, 0, 149);
+            var cmdR1 = getResponseR1(16);
+          // ExtLog.AddLine(formatR1(cmdR1));
+      //      ExtLog.AddLine("[R1 Status] " + Convert.ToString(cmdR1, 2).PadLeft(8, '0') + " " + );
+
+
+            ExtLog.AddLine("check support for ver2.0 (CMD8)");
+            sendCmd(8, 0, 0, 0, 0, 15); // 0x0F, 0x55, 15); // all voltage, pattern == 0x55
+            var cmdR7 = getResponseR3R7(32);
+            //   cmdR1 = getResponseR1(16);
+            ExtLog.AddLine(formatR1(cmdR7[0]));
+            for (int i = 1; i < 5; i++)
             {
-                SignalGenerator.OutputDataBytes[i] = 255;
+                ExtLog.AddLine("[R3/R7 " + i.ToString("D4") + "] " + Convert.ToString(cmdR7[i], 2).PadLeft(8, '0'));
+            //ExtLog.AddLine("[R1 Status] " + Convert.ToString(cmdR1, 2).PadLeft(8, '0'));
             }
-
-            // cmd 0
-            // 01000000 00000000 00000000 00000000 00000000 10010101
-            // 64 = 0x40 = b'01000000'  ...0...   149 = 0x95 = b'10010101'
-            SignalGenerator.OutputDataBytes[0] = 64;
-            SignalGenerator.OutputDataBytes[1] = 0;
-            SignalGenerator.OutputDataBytes[2] = 0;
-            SignalGenerator.OutputDataBytes[3] = 0;
-            SignalGenerator.OutputDataBytes[4] = 0;
-            SignalGenerator.OutputDataBytes[5] = 149;
-
-            SignalGenerator.OutputDataLength = 32; // 5 + 2 (16) + (2 (8 + whatever))
-            usb.Transfer();
-            for (int i = 0; i < SignalGenerator.InputDataLength; i++)
-            {
-                ExtLog.AddLine("[" + i.ToString("D4") + "] " + Convert.ToString(SignalGenerator.InputDataBytes[i], 2).PadLeft(8, '0'));
-            }
-
-            usb.ChangeCS(true);
-            usb.ChangeCS(false);
-            // cmd8 0100 1000  0000 0000  0000 0000  0000 0001  1010 1010  0000 1111
-            // 72
-            // 0
-            // 0
-            // 1
-            // 170
-            // 15
-            // check version
-
-            ExtLog.AddLine("check CMD8");
-            for (int i = 0; i < 32; i++)
-            {
-                SignalGenerator.OutputDataBytes[i] = 255;
-            }
-            SignalGenerator.OutputDataBytes[0] = 72;
-            SignalGenerator.OutputDataBytes[1] = 0;
-            SignalGenerator.OutputDataBytes[2] = 0;
-            SignalGenerator.OutputDataBytes[3] = 1;
-            SignalGenerator.OutputDataBytes[4] = 170;
-            SignalGenerator.OutputDataBytes[5] = 15;
-
-            SignalGenerator.OutputDataLength = 32; // 5 + 2 (16) + (2 (8 + whatever))
-            usb.Transfer();
-            for (int i = 0; i < SignalGenerator.InputDataLength; i++)
-            {
-                ExtLog.AddLine("[" + i.ToString("D4") + "] " + Convert.ToString(SignalGenerator.InputDataBytes[i], 2).PadLeft(8, '0'));
-            }
+            
 
             usb.ChangeCS(true);
             usb.ChangeCS(false);
 
-            // CMD58
-            // 0111 1010 00000000 00000000 00000000 00000000 0111 0101
-            // 122
-            // 0
-            // 0
-            // 0
-            // 0
-            // 117
-            ExtLog.AddLine("check CMD58");
-            for (int i = 0; i < 32; i++)
-            {
-                SignalGenerator.OutputDataBytes[i] = 255;
-            }
-            SignalGenerator.OutputDataBytes[0] = 122;
-            SignalGenerator.OutputDataBytes[1] = 0;
-            SignalGenerator.OutputDataBytes[2] = 0;
-            SignalGenerator.OutputDataBytes[3] = 0;
-            SignalGenerator.OutputDataBytes[4] = 0;
-            SignalGenerator.OutputDataBytes[5] = 117;
 
-            SignalGenerator.OutputDataLength = 32; // 5 + 2 (16) + (2 (8 + whatever))
-            usb.Transfer();
-            for (int i = 0; i < SignalGenerator.InputDataLength; i++)
+            ExtLog.AddLine("check for init done (CMD58)");
+            sendCmd(58, 0, 0, 0, 0, 117);
+            cmdR7 = getResponseR3R7(32);
+            ExtLog.AddLine(formatR1(cmdR7[0]));
+            for (int i = 1; i < 5; i++)
             {
-                ExtLog.AddLine("[" + i.ToString("D4") + "] " + Convert.ToString(SignalGenerator.InputDataBytes[i], 2).PadLeft(8, '0'));
+                ExtLog.AddLine("[R3/R7 " + i.ToString("D4") + "] " + Convert.ToString(cmdR7[i], 2).PadLeft(8, '0'));
             }
-
             usb.ChangeCS(true);
         }
 
@@ -154,62 +103,34 @@ namespace SPI_SD
         private void button3_Click(object sender, EventArgs e)
         {
             usb.ChangeCS(false);
+
             // CMD55 next command in App cmd
-            // 01 + 55
-            // 119
-            // 0
-            // 0
-            // 0
-            // 0
-            // 0
-            ExtLog.AddLine("check CMD55");
-            for (int i = 0; i < 32; i++)
+            ExtLog.AddLine("send application command prefix (CMD55)");
+            sendCmd(55, 0, 0, 0, 0, 1);
+            var cmdR7 = getResponseR3R7(32);
+            ExtLog.AddLine(formatR1(cmdR7[0]));
+            for (int i = 1; i < 5; i++)
             {
-                SignalGenerator.OutputDataBytes[i] = 255;
+                ExtLog.AddLine("[R3/R7 " + i.ToString("D4") + "] " + Convert.ToString(cmdR7[i], 2).PadLeft(8, '0'));
             }
-            SignalGenerator.OutputDataBytes[0] = 119;
-            SignalGenerator.OutputDataBytes[1] = 0;
-            SignalGenerator.OutputDataBytes[2] = 0;
-            SignalGenerator.OutputDataBytes[3] = 0;
-            SignalGenerator.OutputDataBytes[4] = 0;
-            SignalGenerator.OutputDataBytes[5] = 1;
-
-            SignalGenerator.OutputDataLength = 32; // 5 + 2 (16) + (2 (8 + whatever))
-            usb.Transfer();
-            for (int i = 0; i < SignalGenerator.InputDataLength; i++)
-            {
-                ExtLog.AddLine("[" + i.ToString("D4") + "] " + Convert.ToString(SignalGenerator.InputDataBytes[i], 2).PadLeft(8, '0'));
-            }
-
-        //    usb.ChangeCS(true);
-         //   usb.ChangeCS(false);
+            
+         //     var cmdR1 = getResponseR1(16);
+           //   ExtLog.AddLine("[R1 Status] " + Convert.ToString(cmdR1, 2).PadLeft(8, '0'));
 
             // ACMD41 init and capacity
+            ExtLog.AddLine("send HCS and start init (ACMD41)");
+            sendCmd(41, 0, 0, 0, 0, 1);
 
-            // 105
-            // 0
-            // 0
-            // 0
-            // 0
-            // 1
-            ExtLog.AddLine("check ACMD41");
-            for (int i = 0; i < 32; i++)
+            cmdR7 = getResponseR3R7(32);
+            ExtLog.AddLine(formatR1(cmdR7[0]));
+            for (int i = 1; i < 5; i++)
             {
-                SignalGenerator.OutputDataBytes[i] = 255;
+                ExtLog.AddLine("[R3/R7 " + i.ToString("D4") + "] " + Convert.ToString(cmdR7[i], 2).PadLeft(8, '0'));
             }
-            SignalGenerator.OutputDataBytes[0] = 105;
-            SignalGenerator.OutputDataBytes[1] = 0;
-            SignalGenerator.OutputDataBytes[2] = 0;
-            SignalGenerator.OutputDataBytes[3] = 0;
-            SignalGenerator.OutputDataBytes[4] = 0;
-            SignalGenerator.OutputDataBytes[5] = 1;
+            
 
-            SignalGenerator.OutputDataLength = 32; // 5 + 2 (16) + (2 (8 + whatever))
-            usb.Transfer();
-            for (int i = 0; i < SignalGenerator.InputDataLength; i++)
-            {
-                ExtLog.AddLine("[" + i.ToString("D4") + "] " + Convert.ToString(SignalGenerator.InputDataBytes[i], 2).PadLeft(8, '0'));
-            }
+           // cmdR1 = getResponseR1(16);
+           // ExtLog.AddLine("[R1 Status] " + Convert.ToString(cmdR1, 2).PadLeft(8, '0'));
 
             usb.ChangeCS(true);
         }
@@ -219,32 +140,43 @@ namespace SPI_SD
             usb.ChangeCS(false);
 
             // CMD9 SEND_CSD
-
-            // 73
-            // 0
-            // 0
-            // 0
-            // 0
-            // 1
             ExtLog.AddLine("check Card Specific Data Reg CMD9");
-            for (int i = 0; i < 48; i++)
+            sendCmd(9, 0, 0, 0, 0, 1);
+            // todo 40 byte block data read
+            var cmdRBlock = getResponseSingleBlock(32, 16); //getResponseR3R7(32);
+         //   ExtLog.AddLine(formatR1(cmdR7[0]));
+            for (int i = 0; i < 16; i++)
             {
-                SignalGenerator.OutputDataBytes[i] = 255;
+                ExtLog.AddLine("[Block " + i.ToString("D4") + "] " + Convert.ToString(cmdRBlock[i], 2).PadLeft(8, '0'));
             }
-            SignalGenerator.OutputDataBytes[0] = 73;
-            SignalGenerator.OutputDataBytes[1] = 0;
-            SignalGenerator.OutputDataBytes[2] = 0;
-            SignalGenerator.OutputDataBytes[3] = 0;
-            SignalGenerator.OutputDataBytes[4] = 0;
-            SignalGenerator.OutputDataBytes[5] = 1;
+            decodeCSD(cmdRBlock, "Struct", 126, 127);
+            decodeCSD(cmdRBlock, "CCC", 84, 95);
+            decodeCSD(cmdRBlock, "READ_BL_LEN", 80, 83);
+         //   decodeCSD(cmdRBlock, "Part Rd Bl Enable", 79, 79);
+            decodeCSD(cmdRBlock, "C_SIZE", 62, 73);
+            decodeCSD(cmdRBlock, "C_SIZE_MULT", 47, 49);
 
-            SignalGenerator.OutputDataLength = 48; // 5 + 2 (16) + (2 (8 + whatever))
-            usb.Transfer();
-            for (int i = 0; i < SignalGenerator.InputDataLength; i++)
-            {
-                ExtLog.AddLine("[" + i.ToString("D4") + "] " + Convert.ToString(SignalGenerator.InputDataBytes[i], 2).PadLeft(8, '0'));
-            }
+            var CSIZE = readBitsFromPackedStruct(16, cmdRBlock, 62, 73);
+            var CSIZEMULT = readBitsFromPackedStruct(16, cmdRBlock, 47, 49);
+            var READBLLEN = readBitsFromPackedStruct(16, cmdRBlock, 80, 83);
+
+            var MULT = (int)Math.Pow(2, CSIZEMULT + 2);
+            ExtLog.AddLine("MULT " + MULT);
+            var BLOCKNR = (CSIZE + 1) * MULT;
+            ExtLog.AddLine("BLOCKNR " + BLOCKNR);
+            var BLOCKLEN = (int)Math.Pow(2, READBLLEN);
+            ExtLog.AddLine("BLOCKLEN " + BLOCKLEN);
+
+            ExtLog.AddLine("Capacity " + (BLOCKLEN * BLOCKNR));
+
             usb.ChangeCS(true);
+        }
+
+        private void decodeCSD(byte[] data, string name, int start, int stop)
+        {
+            var res = readBitsFromPackedStruct(16, data, start, stop);
+            ExtLog.AddLine("CSD " + name + ": " + Convert.ToString(res, 2).PadLeft(1 + stop - start, '0') + " " + res.ToString("D"));
+
         }
 
         private void button5_Click(object sender, EventArgs e)
@@ -288,40 +220,149 @@ namespace SPI_SD
             usb.ChangeCS(true);
         }
 
-
-        private void sendCmd(byte cmd)
-        {
-
-        }
-
         private void sendCmd(byte cmd, byte b3, byte b2, byte b1, byte b0, byte crc7)
         {
-           // cmd or 01000000
-           // crc7 and 00000001 
+            // cmd with start token 01xx xxxx
+
+            cmd = (byte)(cmd & 0x7F); // start bit 0
+            cmd = (byte)(cmd | 0x40); // start bit 1
+
+            SignalGenerator.OutputDataBytes[0] = cmd;
+            SignalGenerator.OutputDataBytes[1] = b3;
+            SignalGenerator.OutputDataBytes[2] = b2;
+            SignalGenerator.OutputDataBytes[3] = b1;
+            SignalGenerator.OutputDataBytes[4] = b0;
+            SignalGenerator.OutputDataBytes[5] = crc7;// CRC7(SignalGenerator.OutputDataBytes, 5);
+            SignalGenerator.OutputDataBytes[6] = 255;
+         //   SignalGenerator.OutputDataBytes[7] = 255;
+
+            SignalGenerator.OutputDataLength = 7;
+
+            usb.Transfer(); // push to usb, ignore input while sending command
         }
 
         private byte getResponseR1(int nbTry)
         {
             // 1 byte starting with 0
-            return 0; 
+
+            var tryNumber = 0;
+
+            while (tryNumber < nbTry) {
+
+                SignalGenerator.OutputDataBytes[0] = 255;
+                SignalGenerator.OutputDataLength = 1;
+             //   SignalGenerator.purgeLeading1s();
+                usb.Transfer();
+                ExtLog.AddLine(SignalGenerator.InputDataBytes[0].ToString("X2"));
+                if (SignalGenerator.InputDataBytes[0] != (byte)0xFF) return SignalGenerator.InputDataBytes[0];
+               tryNumber++;
+            }
+
+            ExtLog.AddLine("getResponseR1 nbTry exceeded");
+
+            return (byte)0xFF; 
         }
 
         private byte[] getResponseR2(int nbTry)
         {
             // 2 byte starting with 0
+
+            ExtLog.AddLine("getResponseR2 not implemented");
             return new byte[2] { 0, 0 };
         }
 
         private byte[] getResponseR3R7(int nbTry)
         {
             // 5 byte starting with 0
-            return new byte[5] { 0, 0, 0, 0, 0 };
+
+
+            var res = new byte[5] { 0, 0, 0, 0, 0 };
+            var tryNumber = 0;
+
+            while (tryNumber < nbTry) //TODO prevent parsing of leading 0s or 1s
+            {
+
+                SignalGenerator.OutputDataBytes[0] = 255;
+                SignalGenerator.OutputDataLength = 1;
+          //      SignalGenerator.purgeLeading1s();
+                usb.Transfer();
+                if (SignalGenerator.InputDataBytes[0] != 0xFF)
+                {
+                    res[0] = SignalGenerator.InputDataBytes[0];
+
+                    SignalGenerator.OutputDataBytes[0] = 255;
+                    SignalGenerator.OutputDataBytes[1] = 255;
+                    SignalGenerator.OutputDataBytes[2] = 255;
+                    SignalGenerator.OutputDataBytes[3] = 255;
+
+                    SignalGenerator.OutputDataLength = 4;
+                    usb.Transfer();
+                    res[1] = SignalGenerator.InputDataBytes[0];
+                    res[2] = SignalGenerator.InputDataBytes[1];
+                    res[3] = SignalGenerator.InputDataBytes[2];
+                    res[4] = SignalGenerator.InputDataBytes[3];
+
+                    tryNumber = nbTry;
+                }
+
+                tryNumber++;
+            }
+
+            //ExtLog.AddLine("getResponseR1 nbTry exceeded");
+            return res;
         }
 
         private byte[] getResponseSingleBlock(int nbTry, int blockLen)
         {
             // blockLen byte starting with 0/R1, FF then FE token, blockLen bytes then CRC16
-            return new byte[blockLen];
+            var res = new byte[blockLen];
+            var tryNumber = 0;
+
+            var readyForNextStep = false;
+
+            // wait for R1
+            while ((tryNumber < nbTry) && !readyForNextStep)
+            {
+                SignalGenerator.OutputDataBytes[0] = 255;
+                SignalGenerator.OutputDataLength = 1;
+                //      SignalGenerator.purgeLeading1s();
+                usb.Transfer();
+                if (SignalGenerator.InputDataBytes[0] != 0xFF)
+                {
+                    ExtLog.AddLine(formatR1(SignalGenerator.InputDataBytes[0]));
+                    readyForNextStep = true;
+                }
+
+                tryNumber++;
+            }
+
+            // wait for start token
+            readyForNextStep = false;
+            while ((tryNumber < nbTry) && !readyForNextStep)
+            {
+                SignalGenerator.OutputDataBytes[0] = 255;
+                SignalGenerator.OutputDataLength = 1;
+                //      SignalGenerator.purgeLeading1s();
+                usb.Transfer();
+                if (SignalGenerator.InputDataBytes[0] == (byte)0xFE)
+                {
+                    ExtLog.AddLine("Data block start Token");
+                    readyForNextStep = true;
+                }
+               tryNumber++;
+            }
+
+            for (int i = 0; i < blockLen+2; i++) SignalGenerator.OutputDataBytes[i] = 255;
+            SignalGenerator.OutputDataLength = blockLen+2;
+
+            usb.Transfer();
+
+            for (int i = 0; i < blockLen; i++) res[i] = SignalGenerator.InputDataBytes[i];
+
+            ExtLog.AddLine("CRC16 " + SignalGenerator.InputDataBytes[blockLen].ToString("X2") + SignalGenerator.InputDataBytes[blockLen+1].ToString("X2"));
+
+
+            return res;
         }
 
 
@@ -411,6 +452,66 @@ namespace SPI_SD
         }
           //return crc;
           return (byte)(crc >> 1);
+        }
+
+        private string formatR1(byte r1)
+        {
+        //    ExtLog.AddLine("[R1 Status] " + Convert.ToString(cmdR1, 2).PadLeft(8, '0') + " " + );
+            var sb = new StringBuilder();
+            sb.Append("[R1  Status] ");
+            sb.Append(Convert.ToString(r1, 2).PadLeft(8, '0') + " ");
+
+            if (SignalGenerator.GetBit(r1, 6)) sb.Append("ParamError ");
+            if (SignalGenerator.GetBit(r1, 5)) sb.Append("AddressError ");
+            if (SignalGenerator.GetBit(r1, 4)) sb.Append("EraseSeqError ");
+            if (SignalGenerator.GetBit(r1, 3)) sb.Append("ComCRCError ");
+            if (SignalGenerator.GetBit(r1, 2)) sb.Append("IllegalCommand ");
+            if (SignalGenerator.GetBit(r1, 1)) sb.Append("EraseReset ");
+            if (SignalGenerator.GetBit(r1, 0)) sb.Append("Idle ");
+            return sb.ToString();
+        }
+
+        private int readBitsFromPackedStruct(int size, byte[] data, int startBit, int stopBit)
+        {
+            var nbBit = stopBit - startBit + 1;
+            var byteOffset = startBit >> 3;
+            var bitOffset = startBit - (8 * byteOffset); //& 0xF7;
+                                                         // bitOffset = bitOffset - (8 * byteOffset);
+
+            // byte 0
+            var res0 = (byte)0;
+            for (int i = 0; (i < nbBit) && (i < 8); i++)
+            {
+                res0 = SignalGenerator.ChangeBit(res0, i,
+                    SignalGenerator.GetBit(data[size - 1 - byteOffset], bitOffset)
+                   );
+                ++bitOffset;
+                if (bitOffset == 8)
+                {
+                    bitOffset = 0;
+                    ++byteOffset;
+                }
+            }
+
+            // byte 1
+            var res1 = (byte)0;
+            if (nbBit > 0)
+            {
+                for (int i = 8; (i < nbBit); i++)
+                {
+                    res1 = SignalGenerator.ChangeBit(res1, i-8,
+                        SignalGenerator.GetBit(data[size - 1 - byteOffset], bitOffset)
+                       );
+                    ++bitOffset;
+                    if (bitOffset == 8)
+                    {
+                        bitOffset = 0;
+                        ++byteOffset;
+                    }
+                }
+            }
+
+            return (res1 << 8) + res0;
         }
 
 

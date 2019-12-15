@@ -69,7 +69,7 @@
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox1.Size = new System.Drawing.Size(776, 271);
+            this.textBox1.Size = new System.Drawing.Size(776, 677);
             this.textBox1.TabIndex = 1;
             this.textBox1.WordWrap = false;
             // 
@@ -231,7 +231,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(800, 856);
             this.Controls.Add(this.textBoxReadBlockHex);
             this.Controls.Add(this.button8);
             this.Controls.Add(this.textBoxReadBlockDec);
