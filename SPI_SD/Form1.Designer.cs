@@ -136,7 +136,6 @@
             this.textBoxAddr2.Size = new System.Drawing.Size(25, 20);
             this.textBoxAddr2.TabIndex = 8;
             this.textBoxAddr2.Text = "00";
-            this.textBoxAddr2.TextChanged += new System.EventHandler(this.textBox4_TextChanged);
             // 
             // textBoxAddr3
             // 

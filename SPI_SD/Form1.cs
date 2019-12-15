@@ -65,6 +65,7 @@ namespace SPI_SD
             {
                 SignalGenerator.OutputDataBytes[i] = 255;
             }
+
             // cmd 0
             // 01000000 00000000 00000000 00000000 00000000 10010101
             // 64 = 0x40 = b'01000000'  ...0...   149 = 0x95 = b'10010101'
@@ -82,6 +83,7 @@ namespace SPI_SD
                 ExtLog.AddLine("[" + i.ToString("D4") + "] " + Convert.ToString(SignalGenerator.InputDataBytes[i], 2).PadLeft(8, '0'));
             }
 
+            usb.ChangeCS(true);
             usb.ChangeCS(false);
             // cmd8 0100 1000  0000 0000  0000 0000  0000 0001  1010 1010  0000 1111
             // 72
@@ -111,6 +113,7 @@ namespace SPI_SD
                 ExtLog.AddLine("[" + i.ToString("D4") + "] " + Convert.ToString(SignalGenerator.InputDataBytes[i], 2).PadLeft(8, '0'));
             }
 
+            usb.ChangeCS(true);
             usb.ChangeCS(false);
 
             // CMD58
@@ -285,10 +288,42 @@ namespace SPI_SD
             usb.ChangeCS(true);
         }
 
-        private void textBox4_TextChanged(object sender, EventArgs e)
+
+        private void sendCmd(byte cmd)
         {
 
         }
+
+        private void sendCmd(byte cmd, byte b3, byte b2, byte b1, byte b0, byte crc7)
+        {
+           // cmd or 01000000
+           // crc7 and 00000001 
+        }
+
+        private byte getResponseR1(int nbTry)
+        {
+            // 1 byte starting with 0
+            return 0; 
+        }
+
+        private byte[] getResponseR2(int nbTry)
+        {
+            // 2 byte starting with 0
+            return new byte[2] { 0, 0 };
+        }
+
+        private byte[] getResponseR3R7(int nbTry)
+        {
+            // 5 byte starting with 0
+            return new byte[5] { 0, 0, 0, 0, 0 };
+        }
+
+        private byte[] getResponseSingleBlock(int nbTry, int blockLen)
+        {
+            // blockLen byte starting with 0/R1, FF then FE token, blockLen bytes then CRC16
+            return new byte[blockLen];
+        }
+
 
         private static byte safeHexParse(string s)
         {
@@ -363,6 +398,22 @@ namespace SPI_SD
 
             button5_Click(null, null);
         }
+
+        private byte CRC7(byte[] message, int length) {
+          var poly = (byte)0b10001001;
+          var crc = (byte)0x00;
+          for (var i = 0; i < length; i++) {
+             crc ^= message[i];
+             for (int j = 0; j< 8; j++) {
+              // crc = crc & 0x1 ? (crc >> 1) ^ poly : crc >> 1;       
+              crc = ((crc & 0x80) > 0) ? (byte)((crc << 1) ^ (poly << 1)) : (byte)(crc << 1);
+            }
+        }
+          //return crc;
+          return (byte)(crc >> 1);
+        }
+
+
     }
 
     public static class ExtLog

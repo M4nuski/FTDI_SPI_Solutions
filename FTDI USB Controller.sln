@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4BE05214-5638-41D0-9FB2-E7C26AD625C1}"
 	ProjectSection(SolutionItems) = preProject
 		Performance1.psess = Performance1.psess
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USB_Interface_v2_Test", "USB_Interface_v2_Test\USB_Interface_v2_Test.csproj", "{33ED34FF-B15F-4227-9111-374DA543D7E2}"
