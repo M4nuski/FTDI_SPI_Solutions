@@ -10,7 +10,9 @@ namespace SPI_SD
 
         private byte[] dataBlock;
         private byte[] dataCluster;
-        private int clusterStartAddress;
+    //    private int clusterStartAddress;
+    //    private int bytesPerCluster;
+    //    private int blockPerCluster;
 
         public Form1()
         {
@@ -607,27 +609,48 @@ namespace SPI_SD
 
             button_ReadBlock_Click(null, null);
 
-            ExtLog.AddLine("Boot Code Jump 0x" + (read4ByteFromPackedStruct(dataBlock, 0x0000) & 0x00FFFFFF).ToString("X4"));
-            ExtLog.AddLine("OEM ID " + readStringFromDataBlock(dataBlock, 0x0003, 8));
-            ExtLog.AddLine("Bytes per Sector " + read2ByteFromPackedStruct(dataBlock, 0x000B));
-            ExtLog.AddLine("Sectors per Cluster " + read1ByteFromPackedStruct(dataBlock, 0x000D));
-            ExtLog.AddLine("Reserved Sectors from volume start " + read2ByteFromPackedStruct(dataBlock, 0x000E));
-            ExtLog.AddLine("Nb FAT copies " + read1ByteFromPackedStruct(dataBlock, 0x0010));
-            ExtLog.AddLine("Nb Max root entries " + read2ByteFromPackedStruct(dataBlock, 0x0011));
-            ExtLog.AddLine("Nb sectors (Small vol.) " + read2ByteFromPackedStruct(dataBlock, 0x0013));
-            ExtLog.AddLine("Media Descriptor 0x" + read1ByteFromPackedStruct(dataBlock, 0x0015).ToString("X2"));
-            ExtLog.AddLine("Sectors per FAT " + read2ByteFromPackedStruct(dataBlock, 0x0016));
-            ExtLog.AddLine("Sectors per track " + read2ByteFromPackedStruct(dataBlock, 0x0018));
-            ExtLog.AddLine("Nb heads " + read2ByteFromPackedStruct(dataBlock, 0x001A));
-            ExtLog.AddLine("Nb hidden sectors " + read4ByteFromPackedStruct(dataBlock, 0x001C));
-            ExtLog.AddLine("Nb sectors (Large vol.) " + read4ByteFromPackedStruct(dataBlock, 0x0020));
-            ExtLog.AddLine("Drive number 0x" + read1ByteFromPackedStruct(dataBlock, 0x0024).ToString("X2"));
-            ExtLog.AddLine("Reserved (NTFS) " + read1ByteFromPackedStruct(dataBlock, 0x0025));
-            ExtLog.AddLine("Extended boot signature (0x29 == true) 0x" + read1ByteFromPackedStruct(dataBlock, 0x0026).ToString("X2"));
-            ExtLog.AddLine("Volume Serial Number " + read4ByteFromPackedStruct(dataBlock, 0x0027));
-            ExtLog.AddLine("Volume Label " + readStringFromDataBlock(dataBlock, 0x002B, 11));
-            ExtLog.AddLine("File System Type " + readStringFromDataBlock(dataBlock, 0x0036, 8));
-            ExtLog.AddLine("Boot Executable Marker 0x" + read2ByteFromPackedStruct(dataBlock, 0x1FE).ToString("X4"));
+            ExtLog.AddLine("Boot Code Jump: 0x" + (read4ByteFromPackedStruct(dataBlock, 0x0000) & 0x00FFFFFF).ToString("X4"));
+            ExtLog.AddLine("OEM ID: " + readStringFromDataBlock(dataBlock, 0x0003, 8));
+            ExtLog.AddLine("Bytes per Sector: " + read2ByteFromPackedStruct(dataBlock, 0x000B));
+            ExtLog.AddLine("Sectors per Cluster: " + read1ByteFromPackedStruct(dataBlock, 0x000D));
+            ExtLog.AddLine("Reserved Sectors from volume start: " + read2ByteFromPackedStruct(dataBlock, 0x000E));
+            ExtLog.AddLine("Nb FAT copies: " + read1ByteFromPackedStruct(dataBlock, 0x0010));
+            ExtLog.AddLine("Nb Max root entries: " + read2ByteFromPackedStruct(dataBlock, 0x0011));
+            ExtLog.AddLine("Nb sectors (Small vol.): " + read2ByteFromPackedStruct(dataBlock, 0x0013));
+            ExtLog.AddLine("Media Descriptor: 0x" + read1ByteFromPackedStruct(dataBlock, 0x0015).ToString("X2"));
+            ExtLog.AddLine("Sectors per FAT: " + read2ByteFromPackedStruct(dataBlock, 0x0016));
+            ExtLog.AddLine("Sectors per track: " + read2ByteFromPackedStruct(dataBlock, 0x0018));
+            ExtLog.AddLine("Nb heads: " + read2ByteFromPackedStruct(dataBlock, 0x001A));
+            ExtLog.AddLine("Nb hidden sectors: " + read4ByteFromPackedStruct(dataBlock, 0x001C));
+            ExtLog.AddLine("Nb sectors (Large vol.): " + read4ByteFromPackedStruct(dataBlock, 0x0020));
+            ExtLog.AddLine("Drive number: 0x" + read1ByteFromPackedStruct(dataBlock, 0x0024).ToString("X2"));
+            ExtLog.AddLine("Reserved (NTFS): " + read1ByteFromPackedStruct(dataBlock, 0x0025));
+            ExtLog.AddLine("Extended boot signature (0x29 == true): 0x" + read1ByteFromPackedStruct(dataBlock, 0x0026).ToString("X2"));
+            ExtLog.AddLine("Volume Serial Number: 0x" + read4ByteFromPackedStruct(dataBlock, 0x0027).ToString("X4"));
+            ExtLog.AddLine("Volume Label: " + readStringFromDataBlock(dataBlock, 0x002B, 11));
+            ExtLog.AddLine("File System Type: " + readStringFromDataBlock(dataBlock, 0x0036, 8));
+            ExtLog.AddLine("Boot Executable Marker: 0x" + read2ByteFromPackedStruct(dataBlock, 0x1FE).ToString("X4"));
+
+
+            var b_per_sect = read2ByteFromPackedStruct(dataBlock, 0x000B);
+            var sect_per_cluster = read1ByteFromPackedStruct(dataBlock, 0x000D);
+            var nb_FAT = read1ByteFromPackedStruct(dataBlock, 0x0010);
+            var sect_per_FAT = read2ByteFromPackedStruct(dataBlock, 0x0016);
+            var nb_res_sect = read2ByteFromPackedStruct(dataBlock, 0x000E);
+            var nb_sect_hidden = read4ByteFromPackedStruct(dataBlock, 0x001C);
+            var nb_entries_for_root = read2ByteFromPackedStruct(dataBlock, 0x0011);
+
+            var start_sector_volume = nb_sect_hidden;
+            ExtLog.AddLine("Start Sector for this volume: " + start_sector_volume);
+            var start_sector_FAT = start_sector_volume + nb_res_sect;
+            ExtLog.AddLine("Start Sector for first FAT: " + start_sector_FAT);
+            var start_sector_root = start_sector_FAT + (nb_FAT * sect_per_FAT);
+            ExtLog.AddLine("Start Sector for root: " + start_sector_root);
+            var byte_per_dir_entries = 32;
+            var start_sector_data = start_sector_root + ((nb_entries_for_root * byte_per_dir_entries) / b_per_sect);
+            ExtLog.AddLine("Start Sector for this volume's data: " + start_sector_data);
+
+
         }
 
         private string readStringFromDataBlock(byte[] data, int offset, int length)
