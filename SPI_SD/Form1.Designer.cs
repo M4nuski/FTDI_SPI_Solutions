@@ -47,6 +47,10 @@
             this.textBoxReadBlockDec = new System.Windows.Forms.TextBox();
             this.textBoxReadBlockHex = new System.Windows.Forms.TextBox();
             this.button8 = new System.Windows.Forms.Button();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.button9 = new System.Windows.Forms.Button();
+            this.button10 = new System.Windows.Forms.Button();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // button1
@@ -183,7 +187,7 @@
             // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(440, 11);
+            this.button6.Location = new System.Drawing.Point(164, 50);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(146, 23);
             this.button6.TabIndex = 14;
@@ -227,11 +231,43 @@
             this.button8.UseVisualStyleBackColor = true;
             this.button8.Click += new System.EventHandler(this.button8_Click);
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.button10);
+            this.groupBox1.Controls.Add(this.button9);
+            this.groupBox1.Location = new System.Drawing.Point(499, 14);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(293, 135);
+            this.groupBox1.TabIndex = 19;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "FAT16";
+            // 
+            // button9
+            // 
+            this.button9.Location = new System.Drawing.Point(6, 19);
+            this.button9.Name = "button9";
+            this.button9.Size = new System.Drawing.Size(146, 23);
+            this.button9.TabIndex = 20;
+            this.button9.Text = "Read MBR Sector 0";
+            this.button9.UseVisualStyleBackColor = true;
+            this.button9.Click += new System.EventHandler(this.button9_Click);
+            // 
+            // button10
+            // 
+            this.button10.Location = new System.Drawing.Point(6, 48);
+            this.button10.Name = "button10";
+            this.button10.Size = new System.Drawing.Size(146, 23);
+            this.button10.TabIndex = 21;
+            this.button10.Text = "Read FAT Boot Sector 39";
+            this.button10.UseVisualStyleBackColor = true;
+            this.button10.Click += new System.EventHandler(this.button10_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 941);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.textBoxReadBlockHex);
             this.Controls.Add(this.button8);
             this.Controls.Add(this.textBoxReadBlockDec);
@@ -254,6 +290,7 @@
             this.Name = "Form1";
             this.Text = "SPI SD";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -280,6 +317,9 @@
         private System.Windows.Forms.TextBox textBoxReadBlockDec;
         private System.Windows.Forms.TextBox textBoxReadBlockHex;
         private System.Windows.Forms.Button button8;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button button9;
+        private System.Windows.Forms.Button button10;
     }
 }
 
