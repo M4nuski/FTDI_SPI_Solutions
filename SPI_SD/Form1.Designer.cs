@@ -48,8 +48,10 @@
             this.textBoxReadBlockHex = new System.Windows.Forms.TextBox();
             this.button8 = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.button9 = new System.Windows.Forms.Button();
+            this.button11 = new System.Windows.Forms.Button();
             this.button10 = new System.Windows.Forms.Button();
+            this.button9 = new System.Windows.Forms.Button();
+            this.button12 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -203,7 +205,7 @@
             this.button7.TabIndex = 15;
             this.button7.Text = "Read Block (DEC)";
             this.button7.UseVisualStyleBackColor = true;
-            this.button7.Click += new System.EventHandler(this.button7_Click);
+            this.button7.Click += new System.EventHandler(this.buttonReadBlockDecimal_Click);
             // 
             // textBoxReadBlockDec
             // 
@@ -229,10 +231,12 @@
             this.button8.TabIndex = 17;
             this.button8.Text = "Read Block (HEX)";
             this.button8.UseVisualStyleBackColor = true;
-            this.button8.Click += new System.EventHandler(this.button8_Click);
+            this.button8.Click += new System.EventHandler(this.buttonReadBlockHex_Click);
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.button12);
+            this.groupBox1.Controls.Add(this.button11);
             this.groupBox1.Controls.Add(this.button10);
             this.groupBox1.Controls.Add(this.button9);
             this.groupBox1.Location = new System.Drawing.Point(499, 14);
@@ -240,7 +244,27 @@
             this.groupBox1.Size = new System.Drawing.Size(293, 135);
             this.groupBox1.TabIndex = 19;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "FAT16";
+            this.groupBox1.Text = "FAT";
+            // 
+            // button11
+            // 
+            this.button11.Location = new System.Drawing.Point(6, 76);
+            this.button11.Name = "button11";
+            this.button11.Size = new System.Drawing.Size(146, 23);
+            this.button11.TabIndex = 23;
+            this.button11.Text = "Read FAT32 Boot Sector";
+            this.button11.UseVisualStyleBackColor = true;
+            this.button11.Click += new System.EventHandler(this.buttonReadFAT32Sector_Click);
+            // 
+            // button10
+            // 
+            this.button10.Location = new System.Drawing.Point(6, 47);
+            this.button10.Name = "button10";
+            this.button10.Size = new System.Drawing.Size(146, 23);
+            this.button10.TabIndex = 21;
+            this.button10.Text = "Read FAT16 Boot Sector";
+            this.button10.UseVisualStyleBackColor = true;
+            this.button10.Click += new System.EventHandler(this.buttonReadFATBoot_Click);
             // 
             // button9
             // 
@@ -248,19 +272,19 @@
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(146, 23);
             this.button9.TabIndex = 20;
-            this.button9.Text = "Read MBR Sector 0";
+            this.button9.Text = "Read MBR/Part.Table Sect.";
             this.button9.UseVisualStyleBackColor = true;
-            this.button9.Click += new System.EventHandler(this.button9_Click);
+            this.button9.Click += new System.EventHandler(this.buttonReadMBR_Click);
             // 
-            // button10
+            // button12
             // 
-            this.button10.Location = new System.Drawing.Point(6, 48);
-            this.button10.Name = "button10";
-            this.button10.Size = new System.Drawing.Size(146, 23);
-            this.button10.TabIndex = 21;
-            this.button10.Text = "Read FAT Boot Sector 39";
-            this.button10.UseVisualStyleBackColor = true;
-            this.button10.Click += new System.EventHandler(this.button10_Click);
+            this.button12.Location = new System.Drawing.Point(6, 105);
+            this.button12.Name = "button12";
+            this.button12.Size = new System.Drawing.Size(146, 23);
+            this.button12.TabIndex = 24;
+            this.button12.Text = "Read Directory Sector";
+            this.button12.UseVisualStyleBackColor = true;
+            this.button12.Click += new System.EventHandler(this.buttonReadFATDirectory);
             // 
             // Form1
             // 
@@ -320,6 +344,8 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button button9;
         private System.Windows.Forms.Button button10;
+        private System.Windows.Forms.Button button11;
+        private System.Windows.Forms.Button button12;
     }
 }
 

@@ -186,6 +186,12 @@ namespace SPI_SD
             return "" + Convert.ToChar(b);
         }
 
+        private char safeCharConvertW(int b)
+        {
+            if (b < 32) return ' ';
+            return Convert.ToChar(b);
+        }
+
         private string formatDataBlock(byte[] data, int len)
         {
             var sb = new StringBuilder();
@@ -403,10 +409,10 @@ namespace SPI_SD
             button_ReadBlock_Click(null, null);
         }
 
-        private void button7_Click(object sender, EventArgs e)
+        private void buttonReadBlockDecimal_Click(object sender, EventArgs e)
         {
             int address = Convert.ToInt32(textBoxReadBlockDec.Text, 10);
-
+            ExtLog.AddLine("Block " + address + " (dec)");
             address *= 512;
 
             textBoxAddr0.Text = byteToHex(address);
@@ -417,10 +423,10 @@ namespace SPI_SD
             button_ReadBlock_Click(null, null);
         }
 
-        private void button8_Click(object sender, EventArgs e)
+        private void buttonReadBlockHex_Click(object sender, EventArgs e)
         {
             int address = Convert.ToInt32(textBoxReadBlockHex.Text, 16);
-
+            ExtLog.AddLine("Block 0x" + address + " (hex)");
             address *= 512;
 
             textBoxAddr0.Text = byteToHex(address);
@@ -563,14 +569,16 @@ namespace SPI_SD
             return (data[offset + 3] << 24) + (data[offset + 2] << 16) + (data[offset + 1] << 8) + data[offset + 0];
         }
 
-        private void button9_Click(object sender, EventArgs e)
+        private void buttonReadMBR_Click(object sender, EventArgs e)
         { // read and decode Boot Sector
-            textBoxAddr0.Text = "00";
-            textBoxAddr1.Text = "00";
-            textBoxAddr2.Text = "00";
-            textBoxAddr3.Text = "00";
+         //   textBoxReadBlockDec.Text = textBoxFATsector.Text;
 
-            button_ReadBlock_Click(null, null);
+            //textBoxAddr0.Text = "00";
+            //textBoxAddr1.Text = "00";
+            //textBoxAddr2.Text = "00";
+            //textBoxAddr3.Text = "00";
+
+            buttonReadBlockDecimal_Click(null, null);
             //dataBlock
             ExtLog.AddLine("Partition 0");
             readPartitionEntry(0x1BE);
@@ -598,16 +606,25 @@ namespace SPI_SD
             ExtLog.AddLine("Nb Sectors in partition: " + read4ByteFromPackedStruct(dataBlock, offset + 12).ToString("D"));
         }
 
-        private void button10_Click(object sender, EventArgs e)
+        private void buttonReadFATBoot_Click(object sender, EventArgs e)
         {
-            int address = 512 * 39;
+           /// int address = 512 * 39;
+          //  textBoxReadBlockDec.Text = textBoxMBR.Text;
 
-            textBoxAddr0.Text = byteToHex(address);
-            textBoxAddr1.Text = byteToHex(address >> 8);
-            textBoxAddr2.Text = byteToHex(address >> 16);
-            textBoxAddr3.Text = byteToHex(address >> 24);
+//            textBoxAddr0.Text = byteToHex(address);
+  //          textBoxAddr1.Text = byteToHex(address >> 8);
+    //        textBoxAddr2.Text = byteToHex(address >> 16);
+      //      textBoxAddr3.Text = byteToHex(address >> 24);
 
-            button_ReadBlock_Click(null, null);
+        //    button_ReadBlock_Click(null, null);
+       //     textBoxReadBlockDec.Text = textBoxFATsector.Text;
+
+            //textBoxAddr0.Text = "00";
+            //textBoxAddr1.Text = "00";
+            //textBoxAddr2.Text = "00";
+            //textBoxAddr3.Text = "00";
+
+            buttonReadBlockDecimal_Click(null, null);
 
             ExtLog.AddLine("Boot Code Jump: 0x" + (read4ByteFromPackedStruct(dataBlock, 0x0000) & 0x00FFFFFF).ToString("X4"));
             ExtLog.AddLine("OEM ID: " + readStringFromDataBlock(dataBlock, 0x0003, 8));
@@ -639,6 +656,7 @@ namespace SPI_SD
             var nb_res_sect = read2ByteFromPackedStruct(dataBlock, 0x000E);
             var nb_sect_hidden = read4ByteFromPackedStruct(dataBlock, 0x001C);
             var nb_entries_for_root = read2ByteFromPackedStruct(dataBlock, 0x0011);
+            var extended_entries = read1ByteFromPackedStruct(dataBlock, 0x0026) == 0x29;
 
             var start_sector_volume = nb_sect_hidden;
             ExtLog.AddLine("Start Sector for this volume: " + start_sector_volume);
@@ -647,10 +665,11 @@ namespace SPI_SD
             var start_sector_root = start_sector_FAT + (nb_FAT * sect_per_FAT);
             ExtLog.AddLine("Start Sector for root: " + start_sector_root);
             var byte_per_dir_entries = 32;
-            var start_sector_data = start_sector_root + ((nb_entries_for_root * byte_per_dir_entries) / b_per_sect);
-            ExtLog.AddLine("Start Sector for this volume's data: " + start_sector_data);
-
-
+            if (b_per_sect != 0)
+            {
+                var start_sector_data = start_sector_root + ((nb_entries_for_root * byte_per_dir_entries) / b_per_sect);
+                ExtLog.AddLine("Start Sector for this volume's data: " + start_sector_data);
+            }
         }
 
         private string readStringFromDataBlock(byte[] data, int offset, int length)
@@ -658,9 +677,129 @@ namespace SPI_SD
             string res = "";
             for (int i = offset; i < (offset + length); i++)
             {
-                res += Convert.ToChar(data[i]);
+                res += safeCharConvert(data[i]);// Convert.ToChar(data[i]);
             }
             return res;
+        }
+
+        private void buttonReadFAT32Sector_Click(object sender, EventArgs e)
+        {
+        //    textBoxReadBlockDec.Text = textBoxFATsector.Text;
+            buttonReadBlockDecimal_Click(null, null);
+
+            ExtLog.AddLine("Boot Code Jump: 0x" + (read4ByteFromPackedStruct(dataBlock, 0x0000) & 0x00FFFFFF).ToString("X4"));
+            ExtLog.AddLine("OEM ID: " + readStringFromDataBlock(dataBlock, 0x0003, 8));
+            ExtLog.AddLine("Bytes per Sector: " + read2ByteFromPackedStruct(dataBlock, 0x000B));
+            ExtLog.AddLine("Sectors per Cluster: " + read1ByteFromPackedStruct(dataBlock, 0x000D));
+            ExtLog.AddLine("Reserved Sectors from volume start: " + read2ByteFromPackedStruct(dataBlock, 0x000E));
+            ExtLog.AddLine("Nb FAT copies: " + read1ByteFromPackedStruct(dataBlock, 0x0010));
+            ExtLog.AddLine("Media Descriptor: 0x" + read1ByteFromPackedStruct(dataBlock, 0x0015).ToString("X2"));
+            ExtLog.AddLine("Sectors per track: " + read2ByteFromPackedStruct(dataBlock, 0x0018));
+            ExtLog.AddLine("Nb heads: " + read2ByteFromPackedStruct(dataBlock, 0x001A));
+            ExtLog.AddLine("Nb hidden sectors: " + read4ByteFromPackedStruct(dataBlock, 0x001C));
+            ExtLog.AddLine("Nb sectors (Large vol.): " + read4ByteFromPackedStruct(dataBlock, 0x0020));
+
+            ExtLog.AddLine("Sectors per FAT: " + read4ByteFromPackedStruct(dataBlock, 0x0024));
+            ExtLog.AddLine("FAT handling Flags: 0x" + read2ByteFromPackedStruct(dataBlock, 0x0028).ToString("X4"));
+            ExtLog.AddLine("FAT version: 0x" + read2ByteFromPackedStruct(dataBlock, 0x002A).ToString("X4"));
+            ExtLog.AddLine("Cluster Nb for root: " + read4ByteFromPackedStruct(dataBlock, 0x002C));
+            ExtLog.AddLine("File Sys Info Sector offset: " + read2ByteFromPackedStruct(dataBlock, 0x0030));
+            ExtLog.AddLine("Backup boot sect. sect. offset: " + read2ByteFromPackedStruct(dataBlock, 0x0032));
+            ExtLog.AddLine("Logical Drive Number: 0x" + read1ByteFromPackedStruct(dataBlock, 0x0040).ToString("X2"));
+            ExtLog.AddLine("Current Head: " + read1ByteFromPackedStruct(dataBlock, 0x0041));
+            ExtLog.AddLine("Signature (0x28 or 0x29) 0x: " + read1ByteFromPackedStruct(dataBlock, 0x0042).ToString("X2"));
+            ExtLog.AddLine("Volume Serial Number: 0x" + read4ByteFromPackedStruct(dataBlock, 0x0043).ToString("X4"));
+            ExtLog.AddLine("Volume Label: " + readStringFromDataBlock(dataBlock, 0x0047, 11));
+            ExtLog.AddLine("File System Type / ID: " + readStringFromDataBlock(dataBlock, 0x0052, 8));
+            ExtLog.AddLine("Boot Executable Marker: 0x" + read2ByteFromPackedStruct(dataBlock, 0x1FE).ToString("X4"));
+        }
+
+        private void buttonReadFATDirectory(object sender, EventArgs e)
+        {
+            buttonReadBlockDecimal_Click(null, null);
+
+            for (int i = 0; i < 512 / 32; i++)
+            {
+                ExtLog.AddLine("Entry: " + i);
+                var b0 = read1ByteFromPackedStruct(dataBlock, (i * 32) + 0x00);
+                if (b0 == 0x00) {
+                    ExtLog.AddLine("Last Entry.");
+                }
+                else if (b0 == 0xE5) {
+                    ExtLog.AddLine("Free Entry.");
+                } else {
+                   var flags = read1ByteFromPackedStruct(dataBlock, (i * 32) + 0x0B);
+                    if (flags == 0x0F)
+                    {
+                        ExtLog.AddLine("LFN Entry:");
+                        if (SignalGenerator.GetBit(b0, 7)) ExtLog.AddLine("Deleted.");
+                        if (SignalGenerator.GetBit(b0, 6)) ExtLog.AddLine("Last.");
+
+                        ExtLog.AddLine("Ord: " + (b0 & 0x3F));
+                        ExtLog.AddLine("Data: " + decodeWideCharDirEntry(dataBlock, (i * 32)));
+
+
+
+                    } else if ( SignalGenerator.GetBit(flags, 3))
+                    {
+                        ExtLog.AddLine("Volume Name: " + readStringFromDataBlock(dataBlock, (i * 32) + 0x00, 11));
+                    } else
+                    {
+                        ExtLog.AddLine("Name: " + readStringFromDataBlock(dataBlock, (i * 32) + 0x00, 8));
+                        ExtLog.AddLine("Extension: " + readStringFromDataBlock(dataBlock, (i * 32) + 0x08, 3));
+                        ExtLog.AddLine("Attributes: " + decodeFATFlags(flags));
+
+                        ExtLog.AddLine("Creation Time 100th of sec: " + read1ByteFromPackedStruct(dataBlock, (i * 32) + 0x0D));
+                        ExtLog.AddLine("Creation Time: " + read2ByteFromPackedStruct(dataBlock, (i * 32) + 0x0E).ToString("X4"));
+                        ExtLog.AddLine("Creation Date: " + read2ByteFromPackedStruct(dataBlock, (i * 32) + 0x10).ToString("X4"));
+                        ExtLog.AddLine("Last Access Date: " + read2ByteFromPackedStruct(dataBlock, (i * 32) + 0x12).ToString("X4"));
+                        ExtLog.AddLine("Last Write Time: " + read2ByteFromPackedStruct(dataBlock, (i * 32) + 0x16).ToString("X4"));
+                        ExtLog.AddLine("Last Write Date: " + read2ByteFromPackedStruct(dataBlock, (i * 32) + 0x18).ToString("X4"));
+
+                        ExtLog.AddLine("Starting Cluster: " + read2ByteFromPackedStruct(dataBlock, (i * 32) + 0x1A));
+                        ExtLog.AddLine("File Size: " + read4ByteFromPackedStruct(dataBlock, (i * 32) + 0x1C));
+
+                    }
+                }
+            }
+        }
+
+        private string decodeFATFlags(byte flags)
+        {
+            var sb = new StringBuilder();
+
+            if (SignalGenerator.GetBit(flags, 0)) sb.Append("ReadOnly ");
+            if (SignalGenerator.GetBit(flags, 1)) sb.Append("Hidden ");
+            if (SignalGenerator.GetBit(flags, 2)) sb.Append("System ");
+            if (SignalGenerator.GetBit(flags, 3)) sb.Append("VolumeName ");
+            if (SignalGenerator.GetBit(flags, 4)) sb.Append("Directory ");
+            if (SignalGenerator.GetBit(flags, 5)) sb.Append("Archive ");
+
+            return sb.ToString();
+        }
+
+        private string decodeWideCharDirEntry(byte[] data, int offset)
+        {
+            var sb = new StringBuilder();
+
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x01)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x03)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x05)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x07)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x09)));
+
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x0E)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x10)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x12)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x14)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x16)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x18)));
+
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x1C)));
+            sb.Append(safeCharConvertW(read2ByteFromPackedStruct(data, offset + 0x1E)));
+
+            return sb.ToString();
+
         }
     }
 
