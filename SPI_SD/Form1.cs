@@ -801,6 +801,37 @@ namespace SPI_SD
             return sb.ToString();
 
         }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+            usb.ChangeCS(false);
+
+
+            ExtLog.AddLine("Read OCR (CMD58)");
+            sendCmd(58, 0, 0, 0, 0, 117);
+            var cmdR7 = getResponseR3R7(16);
+            ExtLog.AddLine(formatR3R7(cmdR7));
+            ExtLog.AddLine( SignalGenerator.GetBit(cmdR7[1], 7) ? "Power Up: OK" : "Power Up: Busy");
+            ExtLog.AddLine( SignalGenerator.GetBit(cmdR7[1], 6) ? "CCS: HC" : "CCS: SC");
+
+            var sb = new StringBuilder();
+            sb.Append("Voltages: ");
+            if (SignalGenerator.GetBit(cmdR7[3], 7)) sb.Append("2.7-2.8 ");
+            if (SignalGenerator.GetBit(cmdR7[2], 0)) sb.Append("2.8-2.9 ");
+            if (SignalGenerator.GetBit(cmdR7[2], 1)) sb.Append("2.9-3.0 ");
+
+            if (SignalGenerator.GetBit(cmdR7[2], 2)) sb.Append("3.0-3.1 ");
+            if (SignalGenerator.GetBit(cmdR7[2], 3)) sb.Append("3.1-3.2 ");
+            if (SignalGenerator.GetBit(cmdR7[2], 4)) sb.Append("3.2-3.3 ");
+
+            if (SignalGenerator.GetBit(cmdR7[2], 5)) sb.Append("3.3-3.4 ");
+            if (SignalGenerator.GetBit(cmdR7[2], 6)) sb.Append("3.4-3.5 ");
+            if (SignalGenerator.GetBit(cmdR7[2], 7)) sb.Append("3.5-3.6 ");
+
+            ExtLog.AddLine(sb.ToString());
+
+            usb.ChangeCS(true);
+        }
     }
 
 

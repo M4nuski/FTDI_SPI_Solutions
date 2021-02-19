@@ -9,7 +9,7 @@ namespace USB_Interface_v2_Test
 
         public USB_Control usb = new USB_Control();
 
-        private bool signalSwap;
+        private int signalSwap;
 
         private string loopBackResults = "";
 
@@ -51,12 +51,23 @@ namespace USB_Interface_v2_Test
 
                 if (!radioButton1.Checked)
                 {
-                    var b = radioButton2.Checked ? (signalSwap ? (byte)0xAA : (byte)0x55):(signalSwap? (byte)0x00 : (byte)0xFF);
-
+                    byte b = 0;
+                    if (radioButton2.Checked)
+                    {
+                        b = (signalSwap % 2 == 0) ? (byte)0xAA : (byte)0x55;
+                    } 
+                    else if (radioButton3.Checked)
+                    {
+                        b = (signalSwap % 2 == 0) ? (byte)0x00 : (byte)0xFF;
+                    } 
+                    else if (radioButton4.Checked)
+                    {
+                        b = (byte)(0x01 << (signalSwap % 8));
+                    }
                     binarySelector1.ChangeValue(b);
                     binarySelector2.ChangeValue(b);
                     binarySelector3.ChangeValue(b);
-                    signalSwap = !signalSwap;
+                    signalSwap++;
                 }
                 
                 SignalGenerator.OutputByte0 = binarySelector1.Result;

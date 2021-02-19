@@ -48,10 +48,11 @@
             this.textBoxReadBlockHex = new System.Windows.Forms.TextBox();
             this.button8 = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.button12 = new System.Windows.Forms.Button();
             this.button11 = new System.Windows.Forms.Button();
             this.button10 = new System.Windows.Forms.Button();
             this.button9 = new System.Windows.Forms.Button();
-            this.button12 = new System.Windows.Forms.Button();
+            this.button13 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -246,6 +247,16 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "FAT";
             // 
+            // button12
+            // 
+            this.button12.Location = new System.Drawing.Point(6, 105);
+            this.button12.Name = "button12";
+            this.button12.Size = new System.Drawing.Size(146, 23);
+            this.button12.TabIndex = 24;
+            this.button12.Text = "Read Directory Sector";
+            this.button12.UseVisualStyleBackColor = true;
+            this.button12.Click += new System.EventHandler(this.buttonReadFATDirectory);
+            // 
             // button11
             // 
             this.button11.Location = new System.Drawing.Point(6, 76);
@@ -276,21 +287,22 @@
             this.button9.UseVisualStyleBackColor = true;
             this.button9.Click += new System.EventHandler(this.buttonReadMBR_Click);
             // 
-            // button12
+            // button13
             // 
-            this.button12.Location = new System.Drawing.Point(6, 105);
-            this.button12.Name = "button12";
-            this.button12.Size = new System.Drawing.Size(146, 23);
-            this.button12.TabIndex = 24;
-            this.button12.Text = "Read Directory Sector";
-            this.button12.UseVisualStyleBackColor = true;
-            this.button12.Click += new System.EventHandler(this.buttonReadFATDirectory);
+            this.button13.Location = new System.Drawing.Point(316, 61);
+            this.button13.Name = "button13";
+            this.button13.Size = new System.Drawing.Size(146, 23);
+            this.button13.TabIndex = 20;
+            this.button13.Text = "9 Get OCR 58";
+            this.button13.UseVisualStyleBackColor = true;
+            this.button13.Click += new System.EventHandler(this.button13_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 941);
+            this.Controls.Add(this.button13);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.textBoxReadBlockHex);
             this.Controls.Add(this.button8);
@@ -346,6 +358,7 @@
         private System.Windows.Forms.Button button10;
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Button button12;
+        private System.Windows.Forms.Button button13;
     }
 }
 
