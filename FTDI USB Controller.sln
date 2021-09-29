@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.271
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31624.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo_Loopback", "Demo_Loopback\Demo_Loopback.csproj", "{9521B87D-07A2-4D78-9027-D355FD45127C}"
 EndProject
@@ -26,6 +26,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{8E16E3B9-1EEA-4107-B95A-304F60162BB1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPI_SD", "SPI_SD\SPI_SD.csproj", "{62F25D79-8AA3-4271-BF5B-D1AAD802A292}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADC1", "ADC1\ADC1.csproj", "{45F4DEA0-7863-408D-9D57-D3A02FC27156}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,6 +72,10 @@ Global
 		{62F25D79-8AA3-4271-BF5B-D1AAD802A292}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62F25D79-8AA3-4271-BF5B-D1AAD802A292}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62F25D79-8AA3-4271-BF5B-D1AAD802A292}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45F4DEA0-7863-408D-9D57-D3A02FC27156}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45F4DEA0-7863-408D-9D57-D3A02FC27156}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45F4DEA0-7863-408D-9D57-D3A02FC27156}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45F4DEA0-7863-408D-9D57-D3A02FC27156}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
