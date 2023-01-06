@@ -12,4 +12,5 @@ Most uses the FTDI as an SPI host to control different chips, tft screen, ADC, f
 * SPI_SD: interface to read SD card (SDSC) and basic FAT16 handling
 * SPI_TFT: interface TFT lcd screen ST7735 module
 * USB_Interface_v2: next generation of the CNC_Drill_Controller board
+* LogicScope: USB logic analyser from FTDI UM245R module with serial data decoding
 
