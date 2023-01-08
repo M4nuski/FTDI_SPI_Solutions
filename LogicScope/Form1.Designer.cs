@@ -31,8 +31,8 @@ namespace LogicScope
         {
             this.components = new System.ComponentModel.Container();
             this.Device_load_button = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
-            this.DeviceState_label = new System.Windows.Forms.Label();
+            this.Decode_uart_button = new System.Windows.Forms.Button();
+            this.Device_State_label = new System.Windows.Forms.Label();
             this.Device_close_button = new System.Windows.Forms.Button();
             this.hScrollBar1 = new System.Windows.Forms.HScrollBar();
             this.Sampling_open_button = new System.Windows.Forms.Button();
@@ -56,24 +56,24 @@ namespace LogicScope
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.buttonNext0b0 = new System.Windows.Forms.Button();
-            this.button10 = new System.Windows.Forms.Button();
-            this.button12 = new System.Windows.Forms.Button();
-            this.button14 = new System.Windows.Forms.Button();
-            this.button16 = new System.Windows.Forms.Button();
-            this.button18 = new System.Windows.Forms.Button();
-            this.button20 = new System.Windows.Forms.Button();
-            this.button22 = new System.Windows.Forms.Button();
-            this.comboBox2 = new System.Windows.Forms.ComboBox();
+            this.buttonNext0b1 = new System.Windows.Forms.Button();
+            this.buttonNext0b2 = new System.Windows.Forms.Button();
+            this.buttonNext0b3 = new System.Windows.Forms.Button();
+            this.buttonNext0b4 = new System.Windows.Forms.Button();
+            this.buttonNext0b5 = new System.Windows.Forms.Button();
+            this.buttonNext0b6 = new System.Windows.Forms.Button();
+            this.buttonNext0b7 = new System.Windows.Forms.Button();
+            this.Decode_Data_comboBox = new System.Windows.Forms.ComboBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.comboBox3 = new System.Windows.Forms.ComboBox();
+            this.Decode_Clock_comboBox = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
-            this.button23 = new System.Windows.Forms.Button();
-            this.button24 = new System.Windows.Forms.Button();
-            this.comboBox4 = new System.Windows.Forms.ComboBox();
-            this.comboBox5 = new System.Windows.Forms.ComboBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.comboBox6 = new System.Windows.Forms.ComboBox();
-            this.comboBox7 = new System.Windows.Forms.ComboBox();
+            this.Decode_SPI_button = new System.Windows.Forms.Button();
+            this.Decode_Manchester_button = new System.Windows.Forms.Button();
+            this.Decode_SPImode_comboBox = new System.Windows.Forms.ComboBox();
+            this.Decode_ManchesterType_comboBox = new System.Windows.Forms.ComboBox();
+            this.Decode_baudrate_textBox = new System.Windows.Forms.TextBox();
+            this.Decode_stopBits_comboBox = new System.Windows.Forms.ComboBox();
+            this.Decode_parity_comboBox = new System.Windows.Forms.ComboBox();
             this.MousePos_s_label = new System.Windows.Forms.Label();
             this.graphControl1 = new System.Windows.Forms.PictureBox();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
@@ -87,7 +87,7 @@ namespace LogicScope
             this.radioTrig5 = new System.Windows.Forms.RadioButton();
             this.radioTrig6 = new System.Windows.Forms.RadioButton();
             this.radioTrig7 = new System.Windows.Forms.RadioButton();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.Trig_groupBox = new System.Windows.Forms.GroupBox();
             this.buttonSkipb7 = new System.Windows.Forms.Button();
             this.buttonSkipb6 = new System.Windows.Forms.Button();
             this.label11 = new System.Windows.Forms.Label();
@@ -98,7 +98,7 @@ namespace LogicScope
             this.buttonSkipb2 = new System.Windows.Forms.Button();
             this.buttonSkipb1 = new System.Windows.Forms.Button();
             this.buttonSkipb0 = new System.Windows.Forms.Button();
-            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.log_textBox = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.Device_groupBox = new System.Windows.Forms.GroupBox();
             this.Sampling_groupBox = new System.Windows.Forms.GroupBox();
@@ -116,8 +116,15 @@ namespace LogicScope
             this.MousePos_t_label = new System.Windows.Forms.Label();
             this.ViewWidth_s_label = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.t2t1_nSamples_label = new System.Windows.Forms.Label();
+            this.Decode_ClockPer_textBox = new System.Windows.Forms.TextBox();
+            this.Decode_invData_checkBox = new System.Windows.Forms.CheckBox();
+            this.Decode_invClock_checkBox = new System.Windows.Forms.CheckBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.Graph_Seek0_button = new System.Windows.Forms.Button();
+            this.Decode_range_comboBox = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.graphControl1)).BeginInit();
-            this.groupBox1.SuspendLayout();
+            this.Trig_groupBox.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.Device_groupBox.SuspendLayout();
             this.Sampling_groupBox.SuspendLayout();
@@ -134,23 +141,23 @@ namespace LogicScope
             this.Device_load_button.UseVisualStyleBackColor = true;
             this.Device_load_button.Click += new System.EventHandler(this.button1_Click);
             // 
-            // button2
+            // Decode_uart_button
             // 
-            this.button2.Location = new System.Drawing.Point(110, 20);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(156, 23);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "Decode UART";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.Decode_uart_button.Location = new System.Drawing.Point(146, 17);
+            this.Decode_uart_button.Name = "Decode_uart_button";
+            this.Decode_uart_button.Size = new System.Drawing.Size(156, 23);
+            this.Decode_uart_button.TabIndex = 1;
+            this.Decode_uart_button.Text = "Decode UART";
+            this.Decode_uart_button.UseVisualStyleBackColor = true;
+            this.Decode_uart_button.Click += new System.EventHandler(this.button2_Click);
             // 
-            // DeviceState_label
+            // Device_State_label
             // 
-            this.DeviceState_label.Location = new System.Drawing.Point(13, 71);
-            this.DeviceState_label.Name = "DeviceState_label";
-            this.DeviceState_label.Size = new System.Drawing.Size(276, 13);
-            this.DeviceState_label.TabIndex = 3;
-            this.DeviceState_label.Text = "Device State";
+            this.Device_State_label.Location = new System.Drawing.Point(13, 71);
+            this.Device_State_label.Name = "Device_State_label";
+            this.Device_State_label.Size = new System.Drawing.Size(276, 13);
+            this.Device_State_label.TabIndex = 3;
+            this.Device_State_label.Text = "Device State";
             // 
             // Device_close_button
             // 
@@ -371,87 +378,87 @@ namespace LogicScope
             this.buttonNext0b0.UseVisualStyleBackColor = true;
             this.buttonNext0b0.Click += new System.EventHandler(this.buttonNext0_Click);
             // 
-            // button10
+            // buttonNext0b1
             // 
-            this.button10.Location = new System.Drawing.Point(1054, 89);
-            this.button10.Name = "button10";
-            this.button10.Size = new System.Drawing.Size(19, 23);
-            this.button10.TabIndex = 27;
-            this.button10.Tag = "1";
-            this.button10.Text = ">";
-            this.button10.UseVisualStyleBackColor = true;
-            this.button10.Click += new System.EventHandler(this.buttonNext0_Click);
+            this.buttonNext0b1.Location = new System.Drawing.Point(1054, 89);
+            this.buttonNext0b1.Name = "buttonNext0b1";
+            this.buttonNext0b1.Size = new System.Drawing.Size(19, 23);
+            this.buttonNext0b1.TabIndex = 27;
+            this.buttonNext0b1.Tag = "1";
+            this.buttonNext0b1.Text = ">";
+            this.buttonNext0b1.UseVisualStyleBackColor = true;
+            this.buttonNext0b1.Click += new System.EventHandler(this.buttonNext0_Click);
             // 
-            // button12
+            // buttonNext0b2
             // 
-            this.button12.Location = new System.Drawing.Point(1055, 149);
-            this.button12.Name = "button12";
-            this.button12.Size = new System.Drawing.Size(19, 23);
-            this.button12.TabIndex = 29;
-            this.button12.Tag = "2";
-            this.button12.Text = ">";
-            this.button12.UseVisualStyleBackColor = true;
-            this.button12.Click += new System.EventHandler(this.buttonNext0_Click);
+            this.buttonNext0b2.Location = new System.Drawing.Point(1055, 149);
+            this.buttonNext0b2.Name = "buttonNext0b2";
+            this.buttonNext0b2.Size = new System.Drawing.Size(19, 23);
+            this.buttonNext0b2.TabIndex = 29;
+            this.buttonNext0b2.Tag = "2";
+            this.buttonNext0b2.Text = ">";
+            this.buttonNext0b2.UseVisualStyleBackColor = true;
+            this.buttonNext0b2.Click += new System.EventHandler(this.buttonNext0_Click);
             // 
-            // button14
+            // buttonNext0b3
             // 
-            this.button14.Location = new System.Drawing.Point(1054, 209);
-            this.button14.Name = "button14";
-            this.button14.Size = new System.Drawing.Size(19, 23);
-            this.button14.TabIndex = 31;
-            this.button14.Tag = "3";
-            this.button14.Text = ">";
-            this.button14.UseVisualStyleBackColor = true;
-            this.button14.Click += new System.EventHandler(this.buttonNext0_Click);
+            this.buttonNext0b3.Location = new System.Drawing.Point(1054, 209);
+            this.buttonNext0b3.Name = "buttonNext0b3";
+            this.buttonNext0b3.Size = new System.Drawing.Size(19, 23);
+            this.buttonNext0b3.TabIndex = 31;
+            this.buttonNext0b3.Tag = "3";
+            this.buttonNext0b3.Text = ">";
+            this.buttonNext0b3.UseVisualStyleBackColor = true;
+            this.buttonNext0b3.Click += new System.EventHandler(this.buttonNext0_Click);
             // 
-            // button16
+            // buttonNext0b4
             // 
-            this.button16.Location = new System.Drawing.Point(1055, 269);
-            this.button16.Name = "button16";
-            this.button16.Size = new System.Drawing.Size(19, 23);
-            this.button16.TabIndex = 33;
-            this.button16.Tag = "4";
-            this.button16.Text = ">";
-            this.button16.UseVisualStyleBackColor = true;
-            this.button16.Click += new System.EventHandler(this.buttonNext0_Click);
+            this.buttonNext0b4.Location = new System.Drawing.Point(1055, 269);
+            this.buttonNext0b4.Name = "buttonNext0b4";
+            this.buttonNext0b4.Size = new System.Drawing.Size(19, 23);
+            this.buttonNext0b4.TabIndex = 33;
+            this.buttonNext0b4.Tag = "4";
+            this.buttonNext0b4.Text = ">";
+            this.buttonNext0b4.UseVisualStyleBackColor = true;
+            this.buttonNext0b4.Click += new System.EventHandler(this.buttonNext0_Click);
             // 
-            // button18
+            // buttonNext0b5
             // 
-            this.button18.Location = new System.Drawing.Point(1055, 329);
-            this.button18.Name = "button18";
-            this.button18.Size = new System.Drawing.Size(19, 23);
-            this.button18.TabIndex = 35;
-            this.button18.Tag = "5";
-            this.button18.Text = ">";
-            this.button18.UseVisualStyleBackColor = true;
-            this.button18.Click += new System.EventHandler(this.buttonNext0_Click);
+            this.buttonNext0b5.Location = new System.Drawing.Point(1055, 329);
+            this.buttonNext0b5.Name = "buttonNext0b5";
+            this.buttonNext0b5.Size = new System.Drawing.Size(19, 23);
+            this.buttonNext0b5.TabIndex = 35;
+            this.buttonNext0b5.Tag = "5";
+            this.buttonNext0b5.Text = ">";
+            this.buttonNext0b5.UseVisualStyleBackColor = true;
+            this.buttonNext0b5.Click += new System.EventHandler(this.buttonNext0_Click);
             // 
-            // button20
+            // buttonNext0b6
             // 
-            this.button20.Location = new System.Drawing.Point(1054, 389);
-            this.button20.Name = "button20";
-            this.button20.Size = new System.Drawing.Size(19, 23);
-            this.button20.TabIndex = 37;
-            this.button20.Tag = "6";
-            this.button20.Text = ">";
-            this.button20.UseVisualStyleBackColor = true;
-            this.button20.Click += new System.EventHandler(this.buttonNext0_Click);
+            this.buttonNext0b6.Location = new System.Drawing.Point(1054, 389);
+            this.buttonNext0b6.Name = "buttonNext0b6";
+            this.buttonNext0b6.Size = new System.Drawing.Size(19, 23);
+            this.buttonNext0b6.TabIndex = 37;
+            this.buttonNext0b6.Tag = "6";
+            this.buttonNext0b6.Text = ">";
+            this.buttonNext0b6.UseVisualStyleBackColor = true;
+            this.buttonNext0b6.Click += new System.EventHandler(this.buttonNext0_Click);
             // 
-            // button22
+            // buttonNext0b7
             // 
-            this.button22.Location = new System.Drawing.Point(1054, 449);
-            this.button22.Name = "button22";
-            this.button22.Size = new System.Drawing.Size(19, 23);
-            this.button22.TabIndex = 39;
-            this.button22.Tag = "7";
-            this.button22.Text = ">";
-            this.button22.UseVisualStyleBackColor = true;
-            this.button22.Click += new System.EventHandler(this.buttonNext0_Click);
+            this.buttonNext0b7.Location = new System.Drawing.Point(1054, 449);
+            this.buttonNext0b7.Name = "buttonNext0b7";
+            this.buttonNext0b7.Size = new System.Drawing.Size(19, 23);
+            this.buttonNext0b7.TabIndex = 39;
+            this.buttonNext0b7.Tag = "7";
+            this.buttonNext0b7.Text = ">";
+            this.buttonNext0b7.UseVisualStyleBackColor = true;
+            this.buttonNext0b7.Click += new System.EventHandler(this.buttonNext0_Click);
             // 
-            // comboBox2
+            // Decode_Data_comboBox
             // 
-            this.comboBox2.FormattingEnabled = true;
-            this.comboBox2.Items.AddRange(new object[] {
+            this.Decode_Data_comboBox.FormattingEnabled = true;
+            this.Decode_Data_comboBox.Items.AddRange(new object[] {
             "0",
             "1",
             "2",
@@ -460,25 +467,25 @@ namespace LogicScope
             "5",
             "6",
             "7"});
-            this.comboBox2.Location = new System.Drawing.Point(63, 22);
-            this.comboBox2.Name = "comboBox2";
-            this.comboBox2.Size = new System.Drawing.Size(41, 21);
-            this.comboBox2.TabIndex = 41;
-            this.comboBox2.Text = "0";
+            this.Decode_Data_comboBox.Location = new System.Drawing.Point(99, 18);
+            this.Decode_Data_comboBox.Name = "Decode_Data_comboBox";
+            this.Decode_Data_comboBox.Size = new System.Drawing.Size(41, 21);
+            this.Decode_Data_comboBox.TabIndex = 41;
+            this.Decode_Data_comboBox.Text = "0";
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(10, 25);
+            this.label6.Location = new System.Drawing.Point(50, 22);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(48, 13);
             this.label6.TabIndex = 42;
             this.label6.Text = "Data Bit:";
             // 
-            // comboBox3
+            // Decode_Clock_comboBox
             // 
-            this.comboBox3.FormattingEnabled = true;
-            this.comboBox3.Items.AddRange(new object[] {
+            this.Decode_Clock_comboBox.FormattingEnabled = true;
+            this.Decode_Clock_comboBox.Items.AddRange(new object[] {
             "0",
             "1",
             "2",
@@ -487,105 +494,105 @@ namespace LogicScope
             "5",
             "6",
             "7"});
-            this.comboBox3.Location = new System.Drawing.Point(63, 49);
-            this.comboBox3.Name = "comboBox3";
-            this.comboBox3.Size = new System.Drawing.Size(41, 21);
-            this.comboBox3.TabIndex = 43;
-            this.comboBox3.Text = "1";
+            this.Decode_Clock_comboBox.Location = new System.Drawing.Point(99, 75);
+            this.Decode_Clock_comboBox.Name = "Decode_Clock_comboBox";
+            this.Decode_Clock_comboBox.Size = new System.Drawing.Size(41, 21);
+            this.Decode_Clock_comboBox.TabIndex = 43;
+            this.Decode_Clock_comboBox.Text = "1";
             // 
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(7, 53);
+            this.label7.Location = new System.Drawing.Point(47, 79);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(51, 13);
             this.label7.TabIndex = 44;
             this.label7.Text = "Clock bit:";
             // 
-            // button23
+            // Decode_SPI_button
             // 
-            this.button23.Location = new System.Drawing.Point(110, 75);
-            this.button23.Name = "button23";
-            this.button23.Size = new System.Drawing.Size(156, 23);
-            this.button23.TabIndex = 45;
-            this.button23.Text = "Decode SPI";
-            this.button23.UseVisualStyleBackColor = true;
-            this.button23.Click += new System.EventHandler(this.button23_Click);
+            this.Decode_SPI_button.Location = new System.Drawing.Point(146, 74);
+            this.Decode_SPI_button.Name = "Decode_SPI_button";
+            this.Decode_SPI_button.Size = new System.Drawing.Size(156, 23);
+            this.Decode_SPI_button.TabIndex = 45;
+            this.Decode_SPI_button.Text = "Decode SPI";
+            this.Decode_SPI_button.UseVisualStyleBackColor = true;
+            this.Decode_SPI_button.Click += new System.EventHandler(this.button23_Click);
             // 
-            // button24
+            // Decode_Manchester_button
             // 
-            this.button24.Location = new System.Drawing.Point(110, 49);
-            this.button24.Name = "button24";
-            this.button24.Size = new System.Drawing.Size(156, 23);
-            this.button24.TabIndex = 46;
-            this.button24.Text = "Decode Manchester";
-            this.button24.UseVisualStyleBackColor = true;
-            this.button24.Click += new System.EventHandler(this.button24_Click);
+            this.Decode_Manchester_button.Location = new System.Drawing.Point(146, 46);
+            this.Decode_Manchester_button.Name = "Decode_Manchester_button";
+            this.Decode_Manchester_button.Size = new System.Drawing.Size(156, 23);
+            this.Decode_Manchester_button.TabIndex = 46;
+            this.Decode_Manchester_button.Text = "Decode Manchester";
+            this.Decode_Manchester_button.UseVisualStyleBackColor = true;
+            this.Decode_Manchester_button.Click += new System.EventHandler(this.button24_Click);
             // 
-            // comboBox4
+            // Decode_SPImode_comboBox
             // 
-            this.comboBox4.FormattingEnabled = true;
-            this.comboBox4.Items.AddRange(new object[] {
+            this.Decode_SPImode_comboBox.FormattingEnabled = true;
+            this.Decode_SPImode_comboBox.Items.AddRange(new object[] {
             "MODE 0 C low, Rising",
             "MODE 1 C low, Falling",
             "MODE 2 C high, Falling",
             "MODE 3 C high, Rising",
             ""});
-            this.comboBox4.Location = new System.Drawing.Point(272, 77);
-            this.comboBox4.Name = "comboBox4";
-            this.comboBox4.Size = new System.Drawing.Size(161, 21);
-            this.comboBox4.TabIndex = 47;
-            this.comboBox4.Text = "MODE 0 C low, Rising";
+            this.Decode_SPImode_comboBox.Location = new System.Drawing.Point(308, 75);
+            this.Decode_SPImode_comboBox.Name = "Decode_SPImode_comboBox";
+            this.Decode_SPImode_comboBox.Size = new System.Drawing.Size(161, 21);
+            this.Decode_SPImode_comboBox.TabIndex = 47;
+            this.Decode_SPImode_comboBox.Text = "MODE 0 C low, Rising";
             // 
-            // comboBox5
+            // Decode_ManchesterType_comboBox
             // 
-            this.comboBox5.FormattingEnabled = true;
-            this.comboBox5.Items.AddRange(new object[] {
+            this.Decode_ManchesterType_comboBox.FormattingEnabled = true;
+            this.Decode_ManchesterType_comboBox.Items.AddRange(new object[] {
             "Biphase L",
             "Biphase M",
             "Biphase S",
             "Diffential"});
-            this.comboBox5.Location = new System.Drawing.Point(272, 49);
-            this.comboBox5.Name = "comboBox5";
-            this.comboBox5.Size = new System.Drawing.Size(161, 21);
-            this.comboBox5.TabIndex = 48;
-            this.comboBox5.Text = "Biphase L";
+            this.Decode_ManchesterType_comboBox.Location = new System.Drawing.Point(308, 47);
+            this.Decode_ManchesterType_comboBox.Name = "Decode_ManchesterType_comboBox";
+            this.Decode_ManchesterType_comboBox.Size = new System.Drawing.Size(161, 21);
+            this.Decode_ManchesterType_comboBox.TabIndex = 48;
+            this.Decode_ManchesterType_comboBox.Text = "Biphase L";
             // 
-            // textBox2
+            // Decode_baudrate_textBox
             // 
-            this.textBox2.Location = new System.Drawing.Point(272, 22);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(63, 20);
-            this.textBox2.TabIndex = 49;
-            this.textBox2.Text = "9600";
+            this.Decode_baudrate_textBox.Location = new System.Drawing.Point(308, 19);
+            this.Decode_baudrate_textBox.Name = "Decode_baudrate_textBox";
+            this.Decode_baudrate_textBox.Size = new System.Drawing.Size(63, 20);
+            this.Decode_baudrate_textBox.TabIndex = 49;
+            this.Decode_baudrate_textBox.Text = "9600";
             // 
-            // comboBox6
+            // Decode_stopBits_comboBox
             // 
-            this.comboBox6.FormattingEnabled = true;
-            this.comboBox6.Items.AddRange(new object[] {
+            this.Decode_stopBits_comboBox.FormattingEnabled = true;
+            this.Decode_stopBits_comboBox.Items.AddRange(new object[] {
             "1",
             "2",
             "1.5"});
-            this.comboBox6.Location = new System.Drawing.Point(341, 21);
-            this.comboBox6.Name = "comboBox6";
-            this.comboBox6.Size = new System.Drawing.Size(35, 21);
-            this.comboBox6.TabIndex = 52;
-            this.comboBox6.Text = "1";
+            this.Decode_stopBits_comboBox.Location = new System.Drawing.Point(377, 18);
+            this.Decode_stopBits_comboBox.Name = "Decode_stopBits_comboBox";
+            this.Decode_stopBits_comboBox.Size = new System.Drawing.Size(35, 21);
+            this.Decode_stopBits_comboBox.TabIndex = 52;
+            this.Decode_stopBits_comboBox.Text = "1";
             // 
-            // comboBox7
+            // Decode_parity_comboBox
             // 
-            this.comboBox7.FormattingEnabled = true;
-            this.comboBox7.Items.AddRange(new object[] {
+            this.Decode_parity_comboBox.FormattingEnabled = true;
+            this.Decode_parity_comboBox.Items.AddRange(new object[] {
             "None",
             "Even",
             "Odd",
             "Mark",
             "Space"});
-            this.comboBox7.Location = new System.Drawing.Point(382, 21);
-            this.comboBox7.Name = "comboBox7";
-            this.comboBox7.Size = new System.Drawing.Size(51, 21);
-            this.comboBox7.TabIndex = 53;
-            this.comboBox7.Text = "None";
+            this.Decode_parity_comboBox.Location = new System.Drawing.Point(418, 18);
+            this.Decode_parity_comboBox.Name = "Decode_parity_comboBox";
+            this.Decode_parity_comboBox.Size = new System.Drawing.Size(51, 21);
+            this.Decode_parity_comboBox.TabIndex = 53;
+            this.Decode_parity_comboBox.Text = "None";
             // 
             // MousePos_s_label
             // 
@@ -725,34 +732,34 @@ namespace LogicScope
             this.radioTrig7.UseVisualStyleBackColor = true;
             this.radioTrig7.CheckedChanged += new System.EventHandler(this.radioTrig0_CheckedChanged);
             // 
-            // groupBox1
+            // Trig_groupBox
             // 
-            this.groupBox1.Controls.Add(this.buttonSkipb7);
-            this.groupBox1.Controls.Add(this.radioTrig0);
-            this.groupBox1.Controls.Add(this.buttonSkipb6);
-            this.groupBox1.Controls.Add(this.label11);
-            this.groupBox1.Controls.Add(this.buttonSkipb5);
-            this.groupBox1.Controls.Add(this.radioTrig7);
-            this.groupBox1.Controls.Add(this.buttonSkipb4);
-            this.groupBox1.Controls.Add(this.buttonSkipb3);
-            this.groupBox1.Controls.Add(this.trig_level_comboBox);
-            this.groupBox1.Controls.Add(this.buttonSkipb2);
-            this.groupBox1.Controls.Add(this.radioTrigA);
-            this.groupBox1.Controls.Add(this.buttonSkipb1);
-            this.groupBox1.Controls.Add(this.radioTrig6);
-            this.groupBox1.Controls.Add(this.buttonSkipb0);
-            this.groupBox1.Controls.Add(this.radioTrig1);
-            this.groupBox1.Controls.Add(this.radioTrig5);
-            this.groupBox1.Controls.Add(this.radioTrig2);
-            this.groupBox1.Controls.Add(this.radioTrig4);
-            this.groupBox1.Controls.Add(this.radioTrig3);
-            this.groupBox1.Location = new System.Drawing.Point(1053, 9);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.groupBox1.Size = new System.Drawing.Size(87, 543);
-            this.groupBox1.TabIndex = 67;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "TRIG";
+            this.Trig_groupBox.Controls.Add(this.buttonSkipb7);
+            this.Trig_groupBox.Controls.Add(this.radioTrig0);
+            this.Trig_groupBox.Controls.Add(this.buttonSkipb6);
+            this.Trig_groupBox.Controls.Add(this.label11);
+            this.Trig_groupBox.Controls.Add(this.buttonSkipb5);
+            this.Trig_groupBox.Controls.Add(this.radioTrig7);
+            this.Trig_groupBox.Controls.Add(this.buttonSkipb4);
+            this.Trig_groupBox.Controls.Add(this.buttonSkipb3);
+            this.Trig_groupBox.Controls.Add(this.trig_level_comboBox);
+            this.Trig_groupBox.Controls.Add(this.buttonSkipb2);
+            this.Trig_groupBox.Controls.Add(this.radioTrigA);
+            this.Trig_groupBox.Controls.Add(this.buttonSkipb1);
+            this.Trig_groupBox.Controls.Add(this.radioTrig6);
+            this.Trig_groupBox.Controls.Add(this.buttonSkipb0);
+            this.Trig_groupBox.Controls.Add(this.radioTrig1);
+            this.Trig_groupBox.Controls.Add(this.radioTrig5);
+            this.Trig_groupBox.Controls.Add(this.radioTrig2);
+            this.Trig_groupBox.Controls.Add(this.radioTrig4);
+            this.Trig_groupBox.Controls.Add(this.radioTrig3);
+            this.Trig_groupBox.Location = new System.Drawing.Point(1053, 9);
+            this.Trig_groupBox.Name = "Trig_groupBox";
+            this.Trig_groupBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.Trig_groupBox.Size = new System.Drawing.Size(87, 543);
+            this.Trig_groupBox.TabIndex = 67;
+            this.Trig_groupBox.TabStop = false;
+            this.Trig_groupBox.Text = "TRIG";
             // 
             // buttonSkipb7
             // 
@@ -874,38 +881,44 @@ namespace LogicScope
             this.buttonSkipb0.UseVisualStyleBackColor = true;
             this.buttonSkipb0.Click += new System.EventHandler(this.buttonSkipb0_Click);
             // 
-            // textBox3
+            // log_textBox
             // 
-            this.textBox3.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.log_textBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox3.BackColor = System.Drawing.Color.White;
-            this.textBox3.Location = new System.Drawing.Point(1, 741);
-            this.textBox3.Multiline = true;
-            this.textBox3.Name = "textBox3";
-            this.textBox3.ReadOnly = true;
-            this.textBox3.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox3.Size = new System.Drawing.Size(1135, 87);
-            this.textBox3.TabIndex = 68;
+            this.log_textBox.BackColor = System.Drawing.Color.White;
+            this.log_textBox.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.log_textBox.Location = new System.Drawing.Point(1, 741);
+            this.log_textBox.Multiline = true;
+            this.log_textBox.Name = "log_textBox";
+            this.log_textBox.ReadOnly = true;
+            this.log_textBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.log_textBox.Size = new System.Drawing.Size(1135, 140);
+            this.log_textBox.TabIndex = 68;
             // 
             // groupBox2
             // 
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox2.Controls.Add(this.button2);
-            this.groupBox2.Controls.Add(this.comboBox2);
+            this.groupBox2.Controls.Add(this.Decode_range_comboBox);
+            this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Controls.Add(this.label6);
-            this.groupBox2.Controls.Add(this.comboBox3);
             this.groupBox2.Controls.Add(this.label7);
-            this.groupBox2.Controls.Add(this.button23);
-            this.groupBox2.Controls.Add(this.button24);
-            this.groupBox2.Controls.Add(this.comboBox7);
-            this.groupBox2.Controls.Add(this.comboBox4);
-            this.groupBox2.Controls.Add(this.comboBox6);
-            this.groupBox2.Controls.Add(this.comboBox5);
-            this.groupBox2.Controls.Add(this.textBox2);
+            this.groupBox2.Controls.Add(this.Decode_invClock_checkBox);
+            this.groupBox2.Controls.Add(this.Decode_invData_checkBox);
+            this.groupBox2.Controls.Add(this.Decode_ClockPer_textBox);
+            this.groupBox2.Controls.Add(this.Decode_uart_button);
+            this.groupBox2.Controls.Add(this.Decode_Data_comboBox);
+            this.groupBox2.Controls.Add(this.Decode_Clock_comboBox);
+            this.groupBox2.Controls.Add(this.Decode_SPI_button);
+            this.groupBox2.Controls.Add(this.Decode_Manchester_button);
+            this.groupBox2.Controls.Add(this.Decode_parity_comboBox);
+            this.groupBox2.Controls.Add(this.Decode_SPImode_comboBox);
+            this.groupBox2.Controls.Add(this.Decode_stopBits_comboBox);
+            this.groupBox2.Controls.Add(this.Decode_ManchesterType_comboBox);
+            this.groupBox2.Controls.Add(this.Decode_baudrate_textBox);
             this.groupBox2.Location = new System.Drawing.Point(8, 622);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(441, 113);
+            this.groupBox2.Size = new System.Drawing.Size(573, 113);
             this.groupBox2.TabIndex = 71;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Serial Decode";
@@ -918,7 +931,7 @@ namespace LogicScope
             this.Device_groupBox.Controls.Add(this.Device_close_button);
             this.Device_groupBox.Controls.Add(this.Device_Samplerate_textBox);
             this.Device_groupBox.Controls.Add(this.label4);
-            this.Device_groupBox.Controls.Add(this.DeviceState_label);
+            this.Device_groupBox.Controls.Add(this.Device_State_label);
             this.Device_groupBox.Location = new System.Drawing.Point(746, 515);
             this.Device_groupBox.Name = "Device_groupBox";
             this.Device_groupBox.Size = new System.Drawing.Size(294, 90);
@@ -983,6 +996,7 @@ namespace LogicScope
             // 
             // viewDataBox
             // 
+            this.viewDataBox.Controls.Add(this.t2t1_nSamples_label);
             this.viewDataBox.Controls.Add(this.t2t1_info_label);
             this.viewDataBox.Controls.Add(this.Mark2_t_label);
             this.viewDataBox.Controls.Add(this.Mark1_t_label);
@@ -1078,24 +1092,98 @@ namespace LogicScope
             this.timer1.Enabled = true;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // t2t1_nSamples_label
+            // 
+            this.t2t1_nSamples_label.AutoSize = true;
+            this.t2t1_nSamples_label.Location = new System.Drawing.Point(361, 85);
+            this.t2t1_nSamples_label.Name = "t2t1_nSamples_label";
+            this.t2t1_nSamples_label.Size = new System.Drawing.Size(54, 13);
+            this.t2t1_nSamples_label.TabIndex = 81;
+            this.t2t1_nSamples_label.Text = "0 samples";
+            this.t2t1_nSamples_label.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // Decode_ClockPer_textBox
+            // 
+            this.Decode_ClockPer_textBox.Location = new System.Drawing.Point(94, 48);
+            this.Decode_ClockPer_textBox.Name = "Decode_ClockPer_textBox";
+            this.Decode_ClockPer_textBox.Size = new System.Drawing.Size(46, 20);
+            this.Decode_ClockPer_textBox.TabIndex = 54;
+            this.Decode_ClockPer_textBox.Text = "135";
+            // 
+            // Decode_invData_checkBox
+            // 
+            this.Decode_invData_checkBox.AutoSize = true;
+            this.Decode_invData_checkBox.Checked = true;
+            this.Decode_invData_checkBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.Decode_invData_checkBox.Location = new System.Drawing.Point(6, 21);
+            this.Decode_invData_checkBox.Name = "Decode_invData_checkBox";
+            this.Decode_invData_checkBox.Size = new System.Drawing.Size(44, 17);
+            this.Decode_invData_checkBox.TabIndex = 55;
+            this.Decode_invData_checkBox.Text = "INV";
+            this.Decode_invData_checkBox.UseVisualStyleBackColor = true;
+            // 
+            // Decode_invClock_checkBox
+            // 
+            this.Decode_invClock_checkBox.AutoSize = true;
+            this.Decode_invClock_checkBox.Location = new System.Drawing.Point(6, 78);
+            this.Decode_invClock_checkBox.Name = "Decode_invClock_checkBox";
+            this.Decode_invClock_checkBox.Size = new System.Drawing.Size(44, 17);
+            this.Decode_invClock_checkBox.TabIndex = 56;
+            this.Decode_invClock_checkBox.Text = "INV";
+            this.Decode_invClock_checkBox.UseVisualStyleBackColor = true;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(2, 50);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(86, 13);
+            this.label1.TabIndex = 57;
+            this.label1.Text = "Clk Period(samp)";
+            // 
+            // Graph_Seek0_button
+            // 
+            this.Graph_Seek0_button.Location = new System.Drawing.Point(1, 491);
+            this.Graph_Seek0_button.Name = "Graph_Seek0_button";
+            this.Graph_Seek0_button.Size = new System.Drawing.Size(27, 23);
+            this.Graph_Seek0_button.TabIndex = 75;
+            this.Graph_Seek0_button.Tag = "7";
+            this.Graph_Seek0_button.Text = "<<";
+            this.Graph_Seek0_button.UseVisualStyleBackColor = true;
+            this.Graph_Seek0_button.Click += new System.EventHandler(this.Graph_Seek0_button_Click);
+            // 
+            // Decode_range_comboBox
+            // 
+            this.Decode_range_comboBox.FormattingEnabled = true;
+            this.Decode_range_comboBox.Items.AddRange(new object[] {
+            "t1 -> t2",
+            "t1 -> idle",
+            "t1 -> end"});
+            this.Decode_range_comboBox.Location = new System.Drawing.Point(475, 47);
+            this.Decode_range_comboBox.Name = "Decode_range_comboBox";
+            this.Decode_range_comboBox.Size = new System.Drawing.Size(81, 21);
+            this.Decode_range_comboBox.TabIndex = 76;
+            this.Decode_range_comboBox.Text = "t1 -> t2";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1138, 830);
+            this.ClientSize = new System.Drawing.Size(1138, 883);
+            this.Controls.Add(this.Graph_Seek0_button);
             this.Controls.Add(this.viewDataBox);
             this.Controls.Add(this.Sampling_groupBox);
             this.Controls.Add(this.Device_groupBox);
             this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.textBox3);
+            this.Controls.Add(this.log_textBox);
             this.Controls.Add(this.graphControl1);
-            this.Controls.Add(this.button22);
-            this.Controls.Add(this.button20);
-            this.Controls.Add(this.button18);
-            this.Controls.Add(this.button16);
-            this.Controls.Add(this.button14);
-            this.Controls.Add(this.button12);
-            this.Controls.Add(this.button10);
+            this.Controls.Add(this.buttonNext0b7);
+            this.Controls.Add(this.buttonNext0b6);
+            this.Controls.Add(this.buttonNext0b5);
+            this.Controls.Add(this.buttonNext0b4);
+            this.Controls.Add(this.buttonNext0b3);
+            this.Controls.Add(this.buttonNext0b2);
+            this.Controls.Add(this.buttonNext0b1);
             this.Controls.Add(this.buttonNext0b0);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.checkBoxInvb7);
@@ -1107,7 +1195,7 @@ namespace LogicScope
             this.Controls.Add(this.checkBoxInvb1);
             this.Controls.Add(this.checkBoxInvb0);
             this.Controls.Add(this.hScrollBar1);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.Trig_groupBox);
             this.DoubleBuffered = true;
             this.KeyPreview = true;
             this.Name = "Form1";
@@ -1116,8 +1204,8 @@ namespace LogicScope
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             ((System.ComponentModel.ISupportInitialize)(this.graphControl1)).EndInit();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.Trig_groupBox.ResumeLayout(false);
+            this.Trig_groupBox.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.Device_groupBox.ResumeLayout(false);
@@ -1134,8 +1222,8 @@ namespace LogicScope
         #endregion
 
         private System.Windows.Forms.Button Device_load_button;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Label DeviceState_label;
+        private System.Windows.Forms.Button Decode_uart_button;
+        private System.Windows.Forms.Label Device_State_label;
         private System.Windows.Forms.Button Device_close_button;
         private System.Windows.Forms.HScrollBar hScrollBar1;
         private System.Windows.Forms.Button Sampling_open_button;
@@ -1159,24 +1247,24 @@ namespace LogicScope
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button buttonNext0b0;
-        private System.Windows.Forms.Button button10;
-        private System.Windows.Forms.Button button12;
-        private System.Windows.Forms.Button button14;
-        private System.Windows.Forms.Button button16;
-        private System.Windows.Forms.Button button18;
-        private System.Windows.Forms.Button button20;
-        private System.Windows.Forms.Button button22;
-        private System.Windows.Forms.ComboBox comboBox2;
+        private System.Windows.Forms.Button buttonNext0b1;
+        private System.Windows.Forms.Button buttonNext0b2;
+        private System.Windows.Forms.Button buttonNext0b3;
+        private System.Windows.Forms.Button buttonNext0b4;
+        private System.Windows.Forms.Button buttonNext0b5;
+        private System.Windows.Forms.Button buttonNext0b6;
+        private System.Windows.Forms.Button buttonNext0b7;
+        private System.Windows.Forms.ComboBox Decode_Data_comboBox;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.ComboBox comboBox3;
+        private System.Windows.Forms.ComboBox Decode_Clock_comboBox;
         private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Button button23;
-        private System.Windows.Forms.Button button24;
-        private System.Windows.Forms.ComboBox comboBox4;
-        private System.Windows.Forms.ComboBox comboBox5;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.ComboBox comboBox6;
-        private System.Windows.Forms.ComboBox comboBox7;
+        private System.Windows.Forms.Button Decode_SPI_button;
+        private System.Windows.Forms.Button Decode_Manchester_button;
+        private System.Windows.Forms.ComboBox Decode_SPImode_comboBox;
+        private System.Windows.Forms.ComboBox Decode_ManchesterType_comboBox;
+        private System.Windows.Forms.TextBox Decode_baudrate_textBox;
+        private System.Windows.Forms.ComboBox Decode_stopBits_comboBox;
+        private System.Windows.Forms.ComboBox Decode_parity_comboBox;
         private System.Windows.Forms.Label MousePos_s_label;
         private System.Windows.Forms.PictureBox graphControl1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
@@ -1190,8 +1278,8 @@ namespace LogicScope
         private System.Windows.Forms.RadioButton radioTrig5;
         private System.Windows.Forms.RadioButton radioTrig6;
         private System.Windows.Forms.RadioButton radioTrig7;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.GroupBox Trig_groupBox;
+        private System.Windows.Forms.TextBox log_textBox;
         private System.Windows.Forms.ComboBox trig_level_comboBox;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.GroupBox groupBox2;
@@ -1219,6 +1307,13 @@ namespace LogicScope
         private System.Windows.Forms.Label Mark2_t_label;
         private System.Windows.Forms.Label Mark1_t_label;
         private System.Windows.Forms.Button Sampling_cut_button;
+        private System.Windows.Forms.CheckBox Decode_invClock_checkBox;
+        private System.Windows.Forms.CheckBox Decode_invData_checkBox;
+        private System.Windows.Forms.TextBox Decode_ClockPer_textBox;
+        private System.Windows.Forms.Label t2t1_nSamples_label;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button Graph_Seek0_button;
+        private System.Windows.Forms.ComboBox Decode_range_comboBox;
     }
 }
 

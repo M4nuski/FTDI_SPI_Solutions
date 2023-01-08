@@ -1,7 +1,7 @@
-﻿#undef PREFILL_RANDOM
-#define PREFILL_PATTERN
-#undef LOG_MOUSE
-#undef PREFILL_FROMFILE
+﻿#undef LOG_MOUSE
+#undef PREFILL_RANDOM
+#undef PREFILL_PATTERN
+#define PREFILL_FROMFILE
 
 using System;
 using System.Collections.Generic;
@@ -36,6 +36,7 @@ namespace LogicScope
 
         private const int SAMPLES_PER_VIEW = 512;
         private int samplesPerView = SAMPLES_PER_VIEW;
+        private int maxBufferIndex = 0;
 
         private const int BIT_OFFSET = -5;
         private const int BIT_STRIDE = 60;
@@ -64,9 +65,10 @@ namespace LogicScope
         private int mark1_s = 0;
         private float mark1_t = 0.0f;
 
-        private int mark2_s = 0;
+        private int mark2_s = 9000;
         private float mark2_t = 0.0f;
 
+        private bool buttonColorChanged = false;
 
         #region form setup and cleanup
         public Form1()
@@ -104,7 +106,30 @@ namespace LogicScope
                 dataStream.WriteByte((byte)(i & 0xFF));
             }
             setScrollBarMax();
-
+#elif PREFILL_FROMFILE
+            var fileName = "2023-01-05 20-15-32 500000.data";
+            if (File.Exists(fileName))
+                try
+                {
+                    var inputStream = File.OpenRead(fileName);
+                    int o = 0;
+                    while (o < (int)inputStream.Length)
+                    {
+                        int l = inputStream.Read(buffer, 0, BUFFER_LEN);
+                        dataStream.Write(buffer, 0, l);
+                        o += l;
+                    }
+                    inputStream.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("[Debug] PREFILL_FROMFILE exception: " + ex.Message);
+                }
+            else
+            {
+                Console.WriteLine("[Debug] PREFILL_FROMFILE file not found: " + fileName);
+            }
+            setScrollBarMax();
 #endif
         }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -139,7 +164,34 @@ namespace LogicScope
                 Mark2_t_label.Text = "t2: " + formatSampleTime(mark2_t);
                 var delta = Math.Abs(mark2_t - mark1_t);
                 t2t1_info_label.Text = "t2 - t1: " + formatSampleTime(delta) + ", " + (1.0f / (delta)) + "Hz";
+                t2t1_nSamples_label.Text = (mark2_s - mark1_s).ToString() + " samples";
             }
+        }
+
+        private void ResetButtonColors()
+        {
+            if (!buttonColorChanged) return;
+            buttonNext0b0.BackColor = DefaultBackColor;
+            buttonNext0b1.BackColor = DefaultBackColor;
+            buttonNext0b2.BackColor = DefaultBackColor;
+            buttonNext0b3.BackColor = DefaultBackColor;
+
+            buttonNext0b4.BackColor = DefaultBackColor;
+            buttonNext0b5.BackColor = DefaultBackColor;
+            buttonNext0b6.BackColor = DefaultBackColor;
+            buttonNext0b7.BackColor = DefaultBackColor;
+
+            buttonSkipb0.BackColor = DefaultBackColor;
+            buttonSkipb1.BackColor = DefaultBackColor;
+            buttonSkipb2.BackColor = DefaultBackColor;
+            buttonSkipb3.BackColor = DefaultBackColor;
+
+            buttonSkipb4.BackColor = DefaultBackColor;
+            buttonSkipb5.BackColor = DefaultBackColor;
+            buttonSkipb6.BackColor = DefaultBackColor;
+            buttonSkipb7.BackColor = DefaultBackColor;
+
+            buttonColorChanged = false;
         }
 
         private void Application_Loop()
@@ -271,6 +323,7 @@ namespace LogicScope
             //t2t1_info_label.Text = hScrollBar1.Value + " / " + hScrollBar1.Maximum;
             updateViewInfo();
             drawFileGraph(e.NewValue);
+            ResetButtonColors();
         }
 
         private void drawFileGraph(int offset)
@@ -422,12 +475,12 @@ namespace LogicScope
             {
                 timePerDiv = (float)Math.Pow(10.0, Math.Floor(Math.Log10(timePerView) - 1.0));
             }
-            int max = (int)dataStream.Length - samplesPerView;
-            if (max < 0) max = 0;
-            hScrollBar1.Maximum = (samplesPerView / 2) + max - 1; // weird shit to get actual maximum
+            maxBufferIndex = (int)dataStream.Length - samplesPerView;
+            if (maxBufferIndex < 0) maxBufferIndex = 0;
+            hScrollBar1.Maximum = (samplesPerView / 2) + maxBufferIndex - 1; // weird shit to get actual maximum
             hScrollBar1.LargeChange = samplesPerView / 2;
             if (bufferIndex < 0) bufferIndex = 0;
-            if (bufferIndex > max) bufferIndex = max;
+            if (bufferIndex > maxBufferIndex) bufferIndex = maxBufferIndex;
             hScrollBar1.Value = bufferIndex;
 
             updateViewInfo();
@@ -483,8 +536,11 @@ namespace LogicScope
         private void buttonNext0_Click(object sender, EventArgs e)
         {   // seek next data sample with different bit value
             if (dataStream == null) return;
+            ResetButtonColors();
 
-            var bitmask = int.Parse((string)(((Button)sender).Tag));
+            var btn = (Button)sender;
+
+            var bitmask = int.Parse((string)(btn.Tag));
             bitmask = (int)Math.Pow(2, bitmask);
 
             // read current start of view data
@@ -493,7 +549,13 @@ namespace LogicScope
 
             // seek next sample which bit changed
             while ((bufferIndex < dataStream.Length - 1) && ((dataStream.ReadByte() & bitmask) == val)) bufferIndex++;
-            if (bufferIndex > hScrollBar1.Maximum) return;
+            if (bufferIndex > maxBufferIndex)
+            {
+                btn.BackColor = Color.Red;
+                buttonColorChanged = true;
+                hScrollBar1.Value = maxBufferIndex;
+                return;
+            }
 
             hScrollBar1.Value = bufferIndex;
             drawFileGraph(bufferIndex);
@@ -503,8 +565,11 @@ namespace LogicScope
         private void buttonSkipb0_Click(object sender, EventArgs e)
         {   // skip a view and seek next data sample with different bit value
             if (dataStream == null) return;
+            ResetButtonColors();
 
-            var bitmask = int.Parse((string)(((Button)sender).Tag));
+            var btn = (Button)sender;
+
+            var bitmask = int.Parse((string)(btn.Tag));
             bitmask = (int)Math.Pow(2, bitmask);
 
             // read current start of view data
@@ -517,9 +582,15 @@ namespace LogicScope
 
             // seek next sample with same bit
             while ((bufferIndex < dataStream.Length - 1) && ((dataStream.ReadByte() & bitmask) == val)) bufferIndex++;
-            bufferIndex--;
-            if (bufferIndex > hScrollBar1.Maximum) return;
+            if (bufferIndex > maxBufferIndex)
+            {
+                btn.BackColor = Color.Red;
+                buttonColorChanged = true;
+                hScrollBar1.Value = maxBufferIndex;
+                return;
+            }
 
+            bufferIndex--;
             hScrollBar1.Value = bufferIndex;
             drawFileGraph(bufferIndex);
             updateViewInfo();
@@ -691,7 +762,7 @@ namespace LogicScope
 
         private void button1_Click(object sender, EventArgs e)
         {
-            DeviceState_label.Text = "Closed";
+            Device_State_label.Text = "Closed";
             if (Device_comboBox.Items.Count == 0) return;
             try
             {
@@ -704,13 +775,13 @@ namespace LogicScope
             }
             if (usb.IsOpen)
             {
-                DeviceState_label.Text = Device_comboBox.SelectedItem.ToString().Split(' ')[1] + " Open";
+                Device_State_label.Text = Device_comboBox.SelectedItem.ToString().Split(' ')[1] + " Open";
             }
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            DeviceState_label.Text = "Closed";
+            Device_State_label.Text = "Closed";
             usb.CloseDevice();
         }
         #endregion
@@ -718,12 +789,12 @@ namespace LogicScope
         #region log
         private void log(string text)
         {
-            textBox3.AppendText(text + "\r\n");
+            log_textBox.AppendText(text + "\r\n");
         }
 
         private void clearLog()
         {
-            textBox3.Clear();
+            log_textBox.Clear();
         }
         #endregion
 
@@ -735,11 +806,239 @@ namespace LogicScope
         private void button24_Click(object sender, EventArgs e)
         {
             //decode manlicher
+            if ((mark1_s == mark2_s) && (Decode_range_comboBox.SelectedIndex == 0))
+            {
+                log("no selection in samples");
+                return;
+            }
+            var index = mark1_s;
+            var endIndex = (Decode_range_comboBox.SelectedIndex == 0) ? mark2_s : dataStream.Length - 1;
+            var clockPediod = 256;
+            var quaterClock = 0;
+            var clockLimit = 0;
+            try
+            {
+                clockPediod = Int32.Parse(Decode_ClockPer_textBox.Text);
+                quaterClock = clockPediod / 4;
+                clockLimit = (int)(clockPediod * 2.5);
+
+                if ((endIndex - index) < clockPediod) throw new Exception("selection length too small for clock period");
+            }
+            catch (Exception ex)
+            {
+                log("error in clock period value: " + ex.Message);
+                return;
+            }
+
+            var mask = getDecodeDataMask();
+            dataStream.Seek(index, SeekOrigin.Begin);
+            var currentVal = dataStream.ReadByte() & mask;
+            // seek first change
+            while ((currentVal == (dataStream.ReadByte() & mask)) && (index <= endIndex)) ++index;
+
+            var currentPediod = 0;
+            var s = "";
+            var bitHalf1 = 0;
+            var bitHalf2 = 0;
+
+            { 
+                var data = new List<bool>();
+                while ((currentPediod < clockLimit) && (index <= endIndex))
+                {
+                    currentPediod = index;
+                    // advance quater clock
+                    index += quaterClock;
+                    dataStream.Seek(index++, SeekOrigin.Begin);
+                    currentVal = dataStream.ReadByte() & mask;
+                    bitHalf1 = currentVal;
+
+                    // advance half clock
+                    index += quaterClock * 2;
+                    dataStream.Seek(index++, SeekOrigin.Begin);
+                    currentVal = dataStream.ReadByte() & mask;
+                    bitHalf2 = currentVal;
+
+                    if (Decode_invData_checkBox.Checked)
+                    {
+                        bitHalf1 = ~bitHalf1;
+                        bitHalf2 = ~bitHalf2;
+                    }
+
+                    data.Add(bitHalf1 != 0);
+                    data.Add(bitHalf2 != 0);
+
+
+                    s += (bitHalf1 != bitHalf2) ? "0" : "1"; // for debug
+                    // L HL 1 LH 0 // HL and LH phase change can overlap clock cycle
+
+                    // M different 1 same 0 // always a change at every clock cycle
+                    // S different 0 same 1 // always a change at every clock cycle
+
+                    // D HL vs LH phase change are 1, same phases are 0 // HL and LH phase change can overlap clock cycle
+
+                    // seek next change on clock period
+                    while ((currentVal == (dataStream.ReadByte() & mask)) && (index <= endIndex)) ++index;
+
+                    currentPediod = index - currentPediod;
+                }
+                log(s + " " + s.Length + " bits");
+                decodeBitString(s);
+
+                var s2 = premuteBitStringBits(s); // msb - lsb -> lsb - msb
+                decodeBitString(s2);
+
+                s2 = premuteBitStringBytes(s); // msB - lsB -> lsB -> msB
+                decodeBitString(s2);
+
+                s2 = premuteBitStringBits(s2); // msb - lsb -> lsb - msb
+                decodeBitString(s2);
+
+
+
+                s = invertBitString(s); // b = ~b
+                decodeBitString(s);
+
+                s2 = premuteBitStringBits(s); // msb - lsb -> lsb - msb
+                decodeBitString(s2);
+
+                s2 = premuteBitStringBytes(s); // msB - lsB -> lsB -> msB
+                decodeBitString(s2);
+
+                s2 = premuteBitStringBits(s2); // msb - lsb -> lsb - msb
+                decodeBitString(s2);
+
+            } // read cycle
         }
+
+        private string invertBitString(string s)
+        {
+            var res = "";
+            for (var i = 0; i < s.Length; ++i) res += (s[i] == '0') ? "1" : "0";
+            return res;
+        }
+        private string premuteBitStringBytes(string s)
+        {
+            if (s.Length == 0) return "";
+            while (s.Length % 8 != 0) s += "0";
+            var res = "";
+            var i = s.Length - 8;
+            while (i >= 0)
+            {
+                res += s.Substring(i, 8);
+                i -= 8;
+            }
+            return res;
+        }
+        private string premuteBitStringBits(string s)
+        {
+            var res = "";
+            for (var i = s.Length-1; i >= 0; --i) res += s[i];
+            return res;
+        }
+
+        private void decodeBitString(string s)
+        {  // from bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb 
+           // to
+           // XX XX XX XX cccc
+            if (s.Length == 0)
+            {
+                log("Cannot decode Empty String");
+                return;
+            }
+
+            while (s.Length % 8 != 0) s += "0"; // pad
+
+            var sbH = "";
+            var sbC = "";
+            var sb = new StringBuilder();
+            var byteIndex = 0;
+            for (var i = 0; i < s.Length; i += 8)
+            {
+                if ((byteIndex != 0) && ((byteIndex % 4) == 0) )
+                {
+                    sb.Append(sbH);
+                    sb.Append(" ");
+                    sb.AppendLine(sbC);
+                    sbH = "";
+                    sbC = "";
+                }
+                var val = binaryString8charToInt(s.Substring(i, 8));
+                sbH += Convert.ToString(val, 16).PadLeft(2, '0') + " ";
+                sbC += safeCharConvert(val);
+                byteIndex++;
+            }
+            //if ((byteIndex % 4) != 0) sb.AppendLine();
+            sb.Append(sbH.PadRight(12, ' '));
+            sb.Append(" ");
+            sb.AppendLine(sbC);
+
+            log(sb.ToString());
+           //log(byteIndex + " bytes.");
+        }
+
+        private int binaryString8charToInt(string s) // msb - lsb
+        {
+            var res = 0;
+            if (s[0] == '1') res |= 0x80;
+            if (s[1] == '1') res |= 0x40;
+            if (s[2] == '1') res |= 0x20;
+            if (s[3] == '1') res |= 0x10;
+
+            if (s[4] == '1') res |= 0x08;
+            if (s[5] == '1') res |= 0x04;
+            if (s[6] == '1') res |= 0x02;
+            if (s[7] == '1') res |= 0x01;
+
+            return res;
+        }
+
+        private string safeCharConvert(int b)
+        {
+            if ((b < 32) || (b >= 127)) return ".";
+            return "" + Convert.ToChar(b);
+        }
+
+
+
+        private string formatDataBlock(byte[] data, int len)
+        {
+            var sb = new StringBuilder();
+            var sbc = new StringBuilder();
+            for (int i = 0; i < data.Length; i++)
+            {
+                if ((i % 8) == 0)
+                {
+                    sb.Append(" ");
+                    sbc.Append(" ");
+                }
+                if ((i % 16) == 0)
+                {
+                    sb.AppendLine(sbc.ToString());
+                    sbc.Clear();
+                    sb.Append("[" + i.ToString("D4") + "] ");
+                }
+                sb.Append(Convert.ToString(data[i], 16).PadLeft(2, '0') + " ");
+                sbc.Append(safeCharConvert(data[i]));
+            }
+
+            sb.AppendLine(" " + sbc.ToString());
+            return sb.ToString();
+        }
+
 
         private void button23_Click(object sender, EventArgs e)
         {
             //decode spi
+        }
+
+        private int getDecodeClockMask()
+        {
+            return (int)Math.Pow(2, Decode_Clock_comboBox.SelectedIndex);
+        }
+
+        private int getDecodeDataMask()
+        {
+            return (int)Math.Pow(2, Decode_Data_comboBox.SelectedIndex);
         }
 
         #endregion
@@ -759,6 +1058,7 @@ namespace LogicScope
             //log("invert mask 0x" + invert_mask.ToString("X2").ToUpper());
         }
 
+
         private void radioTrig0_CheckedChanged(object sender, EventArgs e)
         {
             trig_mask = 0;
@@ -773,6 +1073,7 @@ namespace LogicScope
             if (radioTrig7.Checked) trig_mask = trig_mask | 0x80;
             //log("trigger mask 0x" + trig_mask.ToString("X2").ToUpper());
         }
+
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -858,9 +1159,23 @@ namespace LogicScope
             dataStream = newStream;
             oldStream.Close();
 
+            if ((mark1_s >= dataStream.Length) || (mark2_s >= dataStream.Length))
+            {
+                mark1_s = 0;
+                mark2_s = 0;
+            }
+
             setScrollBarMax();
             log("Sampling cut from " + mark1_s + " to " + mark2_s);
 
+        }
+
+        private void Graph_Seek0_button_Click(object sender, EventArgs e)
+        {
+            if (sampling) return;
+            bufferIndex = 0;
+            hScrollBar1.Value = 0;
+            drawFileGraph(bufferIndex);
         }
     }
 
