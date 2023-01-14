@@ -67,7 +67,6 @@ namespace LogicScope
 
         private int mark2_s = 9000;
         private float mark2_t = 0.0f;
-
         private bool buttonColorChanged = false;
 
         #region form setup and cleanup
@@ -107,7 +106,7 @@ namespace LogicScope
             }
             setScrollBarMax();
 #elif PREFILL_FROMFILE
-            var fileName = "2023-01-05 20-15-32 500000.data";
+            var fileName = "2023-01-05 20-15-32 500000 M2B2SD.data";
             if (File.Exists(fileName))
                 try
                 {
@@ -799,13 +798,152 @@ namespace LogicScope
         #endregion
 
         #region data decoding
-        private void button2_Click(object sender, EventArgs e)
+        private void Decode_UART_button_Click(object sender, EventArgs e)
         {
-            //decode uart
+            log("not implemented");
         }
-        private void button24_Click(object sender, EventArgs e)
+        private void Decode_DHT11_button_Click(object sender, EventArgs e)
         {
-            //decode manlicher
+            if ((mark1_s == mark2_s) && (Decode_range_comboBox.SelectedIndex == 0))
+            {
+                log("no selection in samples");
+                return;
+            }
+            var index = mark1_s;
+            var endIndex = (Decode_range_comboBox.SelectedIndex == 0) ? mark2_s : dataStream.Length - 1;
+
+            var mask = getDecodeDataMask();
+            dataStream.Seek(index, SeekOrigin.Begin);
+            var currentVal = dataStream.ReadByte() & mask;
+
+            // assume mark1 is in the low MCU command pulse if low, before MCU command pulse if high
+            while ((currentVal != 0) && (index < endIndex)) //seek command pulse
+            {
+                currentVal = dataStream.ReadByte() & mask;
+                index++;
+            }
+            if (index >= endIndex)
+            {
+                log("reached end mark before start of data");
+                return;
+            }
+
+            // seek 1 for end of command low pulse
+            while ((currentVal == 0) && (index < endIndex))            
+            {
+                currentVal = dataStream.ReadByte() & mask;
+                index++;
+            }
+            if (index >= endIndex)
+            {
+                log("reached end mark before end of command pulse");
+                return;
+            }
+
+            // seek 0 for start of DHT11 response setup pulse
+            while ((currentVal != 0) && (index < endIndex))
+            {
+                currentVal = dataStream.ReadByte() & mask;
+                index++;
+            }
+            if (index >= endIndex)
+            {
+                log("reached end mark before start of DHT11 response pulse");
+                return;
+            }
+
+            // seek 1 for end of DHT11 response setup pulse
+            while ((currentVal == 0) && (index < endIndex))
+            {
+                currentVal = dataStream.ReadByte() & mask;
+                index++;
+            }
+            if (index >= endIndex)
+            {
+                log("reached end mark before end of DHT11 response pulse");
+                return;
+            }
+
+            // seek 0 for end of DHT11 response setup pulse
+            while ((currentVal != 0) && (index < endIndex))
+            {
+                currentVal = dataStream.ReadByte() & mask;
+                index++;
+            }
+            if (index >= endIndex)
+            {
+                log("reached end mark before end of DHT11 setup pulse");
+                return;
+            }
+
+            var nBits = 0;
+            int refClockPeriod;
+            int bitClockPeriod;
+            var s = "";
+
+            while ((nBits < 40) && (index < endIndex)) // signal now at 0
+            {
+                refClockPeriod = index;
+                // next 1 is rising edge and end of ref time, start of bit time
+                while ((currentVal == 0) && (index < endIndex))
+                {
+                    currentVal = dataStream.ReadByte() & mask;
+                    index++;
+                }
+                refClockPeriod = index - refClockPeriod;
+                bitClockPeriod = index;
+
+                // next 0 is end of bit time, start of next ref time
+                while ((currentVal != 0) && (index < endIndex))
+                {
+                    currentVal = dataStream.ReadByte() & mask;
+                    index++;
+                }
+                bitClockPeriod = index - bitClockPeriod;
+
+
+                s += (bitClockPeriod > refClockPeriod) ? "1" : "0";
+                nBits++;
+            }
+            log(s + " " + s.Length + " bits");
+            decodeBitString(s);
+            if (index >= endIndex)
+            {
+                log("reached end mark before reading 40 bits of data");
+                return;
+            }
+
+            var b = getBytesFromBitString(s);
+
+            // total is 40 bits, checksum is sum(byte0 to byte3) mod 0xFF
+            if (b.Length != 5) return;
+            int chk = b[0] + b[1] + b[2] + b[3];
+            if ((chk & 0xFF) != b[4])
+            {
+                log("Invalid checksum in DHT11 data");
+                return;
+            }
+            log("RH: " + b[0] + "." + b[1] + "%, T: " + b[2] + "." + b[3] + "C");
+
+
+        }
+
+        // todo decoder class:
+        // seekChange
+        // seek0
+        // seek1
+        // advanceBy
+        // currentValue
+        // setDataBit
+        // setDataInvert
+        // setClockBit
+        // setClockInvert
+        // setMaxIdle
+        // index
+        // value
+
+        private void Decode_Manchester_button_Click(object sender, EventArgs e)
+        {
             if ((mark1_s == mark2_s) && (Decode_range_comboBox.SelectedIndex == 0))
             {
                 log("no selection in samples");
@@ -884,30 +1022,64 @@ namespace LogicScope
                 log(s + " " + s.Length + " bits");
                 decodeBitString(s);
 
-                var s2 = premuteBitStringBits(s); // msb - lsb -> lsb - msb
+                var s2 = reverseBitString(s); // msb - lsb -> lsb - msb
                 decodeBitString(s2);
 
-                s2 = premuteBitStringBytes(s); // msB - lsB -> lsB -> msB
+                s2 = reverseBitStringBytes(s); // msB - lsB -> lsB -> msB
                 decodeBitString(s2);
 
-                s2 = premuteBitStringBits(s2); // msb - lsb -> lsb - msb
+                s2 = reverseBitString(s2); // msb - lsb -> lsb - msb
                 decodeBitString(s2);
 
 
-
+                log("b = ~b");
                 s = invertBitString(s); // b = ~b
                 decodeBitString(s);
 
-                s2 = premuteBitStringBits(s); // msb - lsb -> lsb - msb
+                s2 = reverseBitString(s); // msb - lsb -> lsb - msb
                 decodeBitString(s2);
 
-                s2 = premuteBitStringBytes(s); // msB - lsB -> lsB -> msB
+                s2 = reverseBitStringBytes(s); // msB - lsB -> lsB -> msB
                 decodeBitString(s2);
 
-                s2 = premuteBitStringBits(s2); // msb - lsb -> lsb - msb
+                s2 = reverseBitString(s2); // msb - lsb -> lsb - msb
                 decodeBitString(s2);
+
+                log("toggle");
+                s = invertBitString(s); // b = ~b
+                s2 = convertBitStringToToggle(s, '0');
+                log(s2 + " " + s2.Length + " bits");
+                decodeBitString(s2);
+
+                s2 = convertBitStringToToggle(s, '1');
+                log(s2 + " " + s2.Length + " bits");
+                decodeBitString(s2);
+
+                log("b = ~b");
+                s = invertBitString(s); // b = ~b
+                s2 = convertBitStringToToggle(s, '0');
+                log(s2 + " " + s2.Length + " bits");
+                decodeBitString(s2);
+
+                s2 = convertBitStringToToggle(s, '1');
+                log(s2 + " " + s2.Length + " bits");
+                decodeBitString(s2);
+
 
             } // read cycle
+        }
+
+        private string convertBitStringToToggle(string s, char lastChar)
+        {
+            var res = "";
+            for (var i = 0; i < s.Length; ++i) {
+                if (s[i] == '0') res += lastChar; else
+                {
+                    lastChar = (lastChar == '0') ? '1' : '0';
+                    res += lastChar;
+                }
+            }
+            return res;
         }
 
         private string invertBitString(string s)
@@ -916,7 +1088,14 @@ namespace LogicScope
             for (var i = 0; i < s.Length; ++i) res += (s[i] == '0') ? "1" : "0";
             return res;
         }
-        private string premuteBitStringBytes(string s)
+        private string reverseBitString(string s)
+        {
+            var res = "";
+            for (var i = s.Length - 1; i >= 0; --i) res += s[i];
+            return res;
+        }
+
+        private string reverseBitStringBytes(string s)
         {
             if (s.Length == 0) return "";
             while (s.Length % 8 != 0) s += "0";
@@ -929,17 +1108,9 @@ namespace LogicScope
             }
             return res;
         }
-        private string premuteBitStringBits(string s)
-        {
-            var res = "";
-            for (var i = s.Length-1; i >= 0; --i) res += s[i];
-            return res;
-        }
 
         private void decodeBitString(string s)
-        {  // from bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb 
-           // to
-           // XX XX XX XX cccc
+        {
             if (s.Length == 0)
             {
                 log("Cannot decode Empty String");
@@ -954,7 +1125,7 @@ namespace LogicScope
             var byteIndex = 0;
             for (var i = 0; i < s.Length; i += 8)
             {
-                if ((byteIndex != 0) && ((byteIndex % 4) == 0) )
+                if ((byteIndex != 0) && ((byteIndex % 8) == 0) )
                 {
                     sb.Append(sbH);
                     sb.Append(" ");
@@ -963,17 +1134,32 @@ namespace LogicScope
                     sbC = "";
                 }
                 var val = binaryString8charToInt(s.Substring(i, 8));
-                sbH += Convert.ToString(val, 16).PadLeft(2, '0') + " ";
+                sbH += Convert.ToString(val, 16).ToUpper().PadLeft(2, '0') + " ";
                 sbC += safeCharConvert(val);
                 byteIndex++;
             }
             //if ((byteIndex % 4) != 0) sb.AppendLine();
-            sb.Append(sbH.PadRight(12, ' '));
+            sb.Append(sbH.PadRight(24, ' '));
             sb.Append(" ");
-            sb.AppendLine(sbC);
+            sb.Append(sbC);
 
             log(sb.ToString());
            //log(byteIndex + " bytes.");
+        }
+        private byte[] getBytesFromBitString(string s)
+        {
+            if (s.Length == 0)
+            {
+                log("Cannot get bytes from Empty String");
+                return new byte[0];
+            }
+
+            while (s.Length % 8 != 0) s += "0"; // pad
+
+            var res = new byte[s.Length / 8];
+            for (var i = 0; i < s.Length; i += 8) res[i/8] = (byte)binaryString8charToInt(s.Substring(i, 8));
+
+            return res;
         }
 
         private int binaryString8charToInt(string s) // msb - lsb
@@ -996,33 +1182,6 @@ namespace LogicScope
         {
             if ((b < 32) || (b >= 127)) return ".";
             return "" + Convert.ToChar(b);
-        }
-
-
-
-        private string formatDataBlock(byte[] data, int len)
-        {
-            var sb = new StringBuilder();
-            var sbc = new StringBuilder();
-            for (int i = 0; i < data.Length; i++)
-            {
-                if ((i % 8) == 0)
-                {
-                    sb.Append(" ");
-                    sbc.Append(" ");
-                }
-                if ((i % 16) == 0)
-                {
-                    sb.AppendLine(sbc.ToString());
-                    sbc.Clear();
-                    sb.Append("[" + i.ToString("D4") + "] ");
-                }
-                sb.Append(Convert.ToString(data[i], 16).PadLeft(2, '0') + " ");
-                sbc.Append(safeCharConvert(data[i]));
-            }
-
-            sb.AppendLine(" " + sbc.ToString());
-            return sb.ToString();
         }
 
 
@@ -1078,6 +1237,7 @@ namespace LogicScope
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             if (sampling) return;
+
             if (e.KeyCode == Keys.D1) // mark t1
             {
                 mark1_s = mouseIndex;
@@ -1088,6 +1248,7 @@ namespace LogicScope
                 }
                 mark1_t = (float)mouseIndex / sampleRate;
                 drawFileGraph(bufferIndex);
+                e.Handled = true;
             }
             if (e.KeyCode == Keys.D2) // mark t2
             {
@@ -1099,6 +1260,7 @@ namespace LogicScope
                 }
                 mark2_t = (float)mouseIndex / sampleRate;
                 drawFileGraph(bufferIndex);
+                e.Handled = true;
             }
         }
 
@@ -1177,6 +1339,18 @@ namespace LogicScope
             hScrollBar1.Value = 0;
             drawFileGraph(bufferIndex);
         }
+
+        private void Log_clear_button_Click(object sender, EventArgs e)
+        {
+            clearLog();
+        }
+
+        private void graphControl1_MouseEnter(object sender, EventArgs e)
+        {
+            graphControl1.Focus();
+        }
+
+
     }
 
 
