@@ -19,6 +19,9 @@ namespace LogicScope
 {
     public partial class Form1 : Form
     {
+        public delegate void loopDelegate();
+        public bool run = true;
+
         private USB_Control usb = new USB_Control();
         private const int BUFFER_LEN = 1024;
         private byte[] buffer = new byte[BUFFER_LEN];
@@ -43,16 +46,15 @@ namespace LogicScope
         private const int BIT0_HEIGHT = 4;
         private const int BIT1_HEIGHT = 50;
 
+        private const int TICK_LENGTH = 5;
+        private const int BIGTICK_LENGTH = 10;
+
         private int bufferIndex;
         private int mouseIndex;
 
         private int sampleRate = 500000;
         private float timePerView = SAMPLES_PER_VIEW / 500000.0f;
         private float timePerDiv = 0.1f / 500000.0f;
-
-        //private bool marking = false;
-        //private int mark_begin = 0;
-        //private int mark_end = 0;
 
         private bool sampling = false;
         private int invert_mask = 0x00;
@@ -64,10 +66,14 @@ namespace LogicScope
 
         private int mark1_s = 0;
         private float mark1_t = 0.0f;
-
         private int mark2_s = 9000;
         private float mark2_t = 0.0f;
+
         private bool buttonColorChanged = false;
+
+        private List<int> tickList = new List<int>();
+        private List<int> bigTickList = new List<int>();
+        private int tickBit = 0;
 
         #region form setup and cleanup
         public Form1()
@@ -130,17 +136,24 @@ namespace LogicScope
             }
             setScrollBarMax();
 #endif
+
+
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            this.BeginInvoke(new loopDelegate(Application_Loop));
         }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             usb.CloseDevice();
+            run = false;
         }
         #endregion
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (usb.IsOpen)
             {
-                Sampling_State_label.Text = (sampling ? "Run " : "Hold ") + (triggered ? " Trig" : "");
+                Sampling_State_label.Text = (sampling ? "Sampling " : "Hold ") + (triggered ? " Trig" : "");
                 triggered = false;
                 Sampling_Rate_label.Text = formatSampleQty((dataStream.Length - last_length) * 10) + "S/s";
                 last_length = dataStream.Length;
@@ -196,7 +209,7 @@ namespace LogicScope
         private void Application_Loop()
         {
             int ba;
-            while (usb.IsOpen && sampling)
+            while (run) if (usb.IsOpen)
             {
                 ba = usb.GetRXbytesAvailable();
                 //DeviceState_label.Text = ba.ToString();
@@ -205,20 +218,25 @@ namespace LogicScope
                     Thread.Sleep(2); // USB pool only every 2 ms at best
                 }
                 else while (ba > 0)
-                    {
-                        if (ba > BUFFER_LEN) ba = BUFFER_LEN;
-                        usb.Read(buffer, ba);
-                        if (invert_mask != 0) processInvert(ba);
+                {
+                    if (ba > BUFFER_LEN) ba = BUFFER_LEN; // clamp
+                    usb.Read(buffer, ba);
+                    if (invert_mask != 0) processInvert(ba);
 
-                        if (radioTrigA.Checked || checkTrig(ba))
-                        {
-                            dataStream.Write(buffer, 0, ba);
-                            bufferIndex += ba;
-                            triggered = true;
-                        }
-                        ba = usb.GetRXbytesAvailable();
+                    if (sampling && (radioTrigA.Checked || checkTrig(ba)) )
+                    {
+                        dataStream.Write(buffer, 0, ba);
+                        bufferIndex += ba;
+                        triggered = true;
                     }
-                drawUSBGraph();
+                    ba = usb.GetRXbytesAvailable();
+                }
+                if (Device_preview_checkBox.Checked || triggered) drawUSBGraph();
+                Application.DoEvents();
+            }
+            else
+            {
+                Thread.Sleep(250); // throttle down
                 Application.DoEvents();
             }
         }
@@ -283,7 +301,7 @@ namespace LogicScope
         }
 
         private Pen markPen = new Pen(Color.Cyan);
-        //private Pen darkPen = new Pen(Color.DarkRed);
+        private Pen tickPen = new Pen(Color.White);
         private Pen divPen = new Pen(Color.Red);
         private Brush bitBrush = new SolidBrush(Color.FromArgb(0, 255, 0));
         //private Brush darkBrush = new SolidBrush(Color.DarkRed);
@@ -357,6 +375,30 @@ namespace LogicScope
                     if (offset + x == mark1_s) graph.DrawLine(markPen, x * z, 0, x * z, 479);
                     if (offset + x == mark2_s) graph.DrawLine(markPen, x * z, 0, x * z, 479);
                 }
+                if (tickList.Count > 0)
+                {
+                    foreach (var tick in tickList)
+                    {
+                        if ( (tick >= offset) && (tick <= (offset + samplesPerView)) )
+                        {
+                            var x = tick - offset;
+                            x = x * z; 
+                            graph.DrawLine(tickPen, x, (BIT_STRIDE * (tickBit+1)) - BIT1_HEIGHT + BIT_OFFSET, x, (BIT_STRIDE * (tickBit+1)) - BIT1_HEIGHT + BIT_OFFSET - TICK_LENGTH);
+                        }
+                    }
+                }
+                if (bigTickList.Count > 0)
+                {
+                    foreach (var tick in bigTickList)
+                    {
+                        if ((tick >= offset) && (tick <= (offset + samplesPerView)))
+                        {
+                            var x = tick - offset;
+                            x = x * z;
+                            graph.DrawLine(tickPen, x, (BIT_STRIDE * (tickBit + 1)) - BIT1_HEIGHT + BIT_OFFSET, x, (BIT_STRIDE * (tickBit + 1)) - BIT1_HEIGHT + BIT_OFFSET - BIGTICK_LENGTH);
+                        }
+                    }
+                }
             }
             else if (zoom < 1.0f)
             {
@@ -420,7 +462,30 @@ namespace LogicScope
                     if ((mark2_s >= s1) && (mark2_s < s2)) graph.DrawLine(markPen, x * 2, 0, x * 2, 479);
                 }
 
-
+                if (tickList.Count > 0)
+                {
+                    foreach (var tick in tickList)
+                    {
+                        if ((tick >= offset) && (tick <= (offset + samplesPerView)))
+                        {
+                            var x = tick - offset;
+                            x = 2 * x / nSamples;
+                            graph.DrawLine(tickPen, x, (BIT_STRIDE * (tickBit + 1)) - BIT1_HEIGHT + BIT_OFFSET, x, (BIT_STRIDE * (tickBit + 1)) - BIT1_HEIGHT + BIT_OFFSET - TICK_LENGTH);
+                        }
+                    }
+                }
+                if (bigTickList.Count > 0)
+                {
+                    foreach (var tick in bigTickList)
+                    {
+                        if ((tick >= offset) && (tick <= (offset + samplesPerView)))
+                        {
+                            var x = tick - offset;
+                            x = 2 * x / nSamples;
+                            graph.DrawLine(tickPen, x, (BIT_STRIDE * (tickBit + 1)) - BIT1_HEIGHT + BIT_OFFSET, x, (BIT_STRIDE * (tickBit + 1)) - BIT1_HEIGHT + BIT_OFFSET - BIGTICK_LENGTH);
+                        }
+                    }
+                }
             }
 
             graphControl1.Refresh();
@@ -670,8 +735,6 @@ namespace LogicScope
             bufferIndex = 0;
             setZoomLevel(0); // 512 samples per view
             setScrollBarMax();
-            Application_Loop();
-
         }
 
         private void button8_Click(object sender, EventArgs e)
@@ -800,7 +863,14 @@ namespace LogicScope
         #region data decoding
         private void Decode_UART_button_Click(object sender, EventArgs e)
         {
-            log("not implemented");
+            int samplesPerBit = sampleRate / int.Parse(Decode_baudrate_textBox.Text);
+            // start bit
+            // 8 data bits, lsb to msb
+            // no parity
+            // 1 stop bit
+            // idle is 1
+            // ¯¯¯¯¯¯_01234567¯
+            // iiiiiiabbbbbbbbe­­
         }
         private void Decode_DHT11_button_Click(object sender, EventArgs e)
         {
@@ -979,6 +1049,12 @@ namespace LogicScope
             var bitHalf1 = 0;
             var bitHalf2 = 0;
 
+            tickList.Clear();
+            bigTickList.Clear();
+            tickBit = 7;
+
+            bigTickList.Add(index + 1);
+
             { 
                 var data = new List<bool>();
                 while ((currentPediod < clockLimit) && (index <= endIndex))
@@ -990,11 +1066,15 @@ namespace LogicScope
                     currentVal = dataStream.ReadByte() & mask;
                     bitHalf1 = currentVal;
 
+                    tickList.Add(index);
+
                     // advance half clock
                     index += quaterClock * 2;
                     dataStream.Seek(index++, SeekOrigin.Begin);
                     currentVal = dataStream.ReadByte() & mask;
                     bitHalf2 = currentVal;
+
+                    tickList.Add(index);
 
                     if (Decode_invData_checkBox.Checked)
                     {
@@ -1016,9 +1096,10 @@ namespace LogicScope
 
                     // seek next change on clock period
                     while ((currentVal == (dataStream.ReadByte() & mask)) && (index <= endIndex)) ++index;
-
+                    bigTickList.Add(index);
                     currentPediod = index - currentPediod;
                 }
+                bigTickList.Add(index);
                 log(s + " " + s.Length + " bits");
                 decodeBitString(s);
 
@@ -1067,6 +1148,8 @@ namespace LogicScope
 
 
             } // read cycle
+
+            drawFileGraph(bufferIndex);
         }
 
         private string convertBitStringToToggle(string s, char lastChar)

@@ -125,6 +125,8 @@ namespace LogicScope
             this.Graph_Seek0_button = new System.Windows.Forms.Button();
             this.Log_clear_button = new System.Windows.Forms.Button();
             this.Decode_DHT11_button = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.Device_preview_checkBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.graphControl1)).BeginInit();
             this.Trig_groupBox.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -157,7 +159,7 @@ namespace LogicScope
             // 
             this.Device_State_label.Location = new System.Drawing.Point(13, 71);
             this.Device_State_label.Name = "Device_State_label";
-            this.Device_State_label.Size = new System.Drawing.Size(276, 13);
+            this.Device_State_label.Size = new System.Drawing.Size(177, 13);
             this.Device_State_label.TabIndex = 3;
             this.Device_State_label.Text = "Device State";
             // 
@@ -469,7 +471,7 @@ namespace LogicScope
             "5",
             "6",
             "7"});
-            this.Decode_Data_comboBox.Location = new System.Drawing.Point(99, 18);
+            this.Decode_Data_comboBox.Location = new System.Drawing.Point(56, 18);
             this.Decode_Data_comboBox.Name = "Decode_Data_comboBox";
             this.Decode_Data_comboBox.Size = new System.Drawing.Size(41, 21);
             this.Decode_Data_comboBox.TabIndex = 41;
@@ -478,7 +480,7 @@ namespace LogicScope
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(50, 22);
+            this.label6.Location = new System.Drawing.Point(7, 22);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(48, 13);
             this.label6.TabIndex = 42;
@@ -496,7 +498,7 @@ namespace LogicScope
             "5",
             "6",
             "7"});
-            this.Decode_Clock_comboBox.Location = new System.Drawing.Point(99, 75);
+            this.Decode_Clock_comboBox.Location = new System.Drawing.Point(56, 75);
             this.Decode_Clock_comboBox.Name = "Decode_Clock_comboBox";
             this.Decode_Clock_comboBox.Size = new System.Drawing.Size(41, 21);
             this.Decode_Clock_comboBox.TabIndex = 43;
@@ -505,11 +507,11 @@ namespace LogicScope
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(47, 79);
+            this.label7.Location = new System.Drawing.Point(13, 79);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(51, 13);
+            this.label7.Size = new System.Drawing.Size(39, 13);
             this.label7.TabIndex = 44;
-            this.label7.Text = "Clock bit:";
+            this.label7.Text = "Clk bit:";
             // 
             // Decode_SPI_button
             // 
@@ -570,12 +572,13 @@ namespace LogicScope
             // 
             // Decode_stopBits_comboBox
             // 
+            this.Decode_stopBits_comboBox.Enabled = false;
             this.Decode_stopBits_comboBox.FormattingEnabled = true;
             this.Decode_stopBits_comboBox.Items.AddRange(new object[] {
             "1",
             "2",
             "1.5"});
-            this.Decode_stopBits_comboBox.Location = new System.Drawing.Point(377, 18);
+            this.Decode_stopBits_comboBox.Location = new System.Drawing.Point(532, 19);
             this.Decode_stopBits_comboBox.Name = "Decode_stopBits_comboBox";
             this.Decode_stopBits_comboBox.Size = new System.Drawing.Size(35, 21);
             this.Decode_stopBits_comboBox.TabIndex = 52;
@@ -583,6 +586,7 @@ namespace LogicScope
             // 
             // Decode_parity_comboBox
             // 
+            this.Decode_parity_comboBox.Enabled = false;
             this.Decode_parity_comboBox.FormattingEnabled = true;
             this.Decode_parity_comboBox.Items.AddRange(new object[] {
             "None",
@@ -590,7 +594,7 @@ namespace LogicScope
             "Odd",
             "Mark",
             "Space"});
-            this.Decode_parity_comboBox.Location = new System.Drawing.Point(418, 18);
+            this.Decode_parity_comboBox.Location = new System.Drawing.Point(479, 19);
             this.Decode_parity_comboBox.Name = "Decode_parity_comboBox";
             this.Decode_parity_comboBox.Size = new System.Drawing.Size(51, 21);
             this.Decode_parity_comboBox.TabIndex = 53;
@@ -902,6 +906,7 @@ namespace LogicScope
             // groupBox2
             // 
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox2.Controls.Add(this.label2);
             this.groupBox2.Controls.Add(this.Decode_range_comboBox);
             this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Controls.Add(this.label6);
@@ -942,16 +947,16 @@ namespace LogicScope
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(2, 50);
+            this.label1.Location = new System.Drawing.Point(5, 50);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(86, 13);
+            this.label1.Size = new System.Drawing.Size(88, 13);
             this.label1.TabIndex = 57;
-            this.label1.Text = "Clk Period(samp)";
+            this.label1.Text = "nSamples to Idle:";
             // 
             // Decode_invClock_checkBox
             // 
             this.Decode_invClock_checkBox.AutoSize = true;
-            this.Decode_invClock_checkBox.Location = new System.Drawing.Point(6, 78);
+            this.Decode_invClock_checkBox.Location = new System.Drawing.Point(101, 77);
             this.Decode_invClock_checkBox.Name = "Decode_invClock_checkBox";
             this.Decode_invClock_checkBox.Size = new System.Drawing.Size(44, 17);
             this.Decode_invClock_checkBox.TabIndex = 56;
@@ -963,7 +968,7 @@ namespace LogicScope
             this.Decode_invData_checkBox.AutoSize = true;
             this.Decode_invData_checkBox.Checked = true;
             this.Decode_invData_checkBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.Decode_invData_checkBox.Location = new System.Drawing.Point(6, 21);
+            this.Decode_invData_checkBox.Location = new System.Drawing.Point(101, 22);
             this.Decode_invData_checkBox.Name = "Decode_invData_checkBox";
             this.Decode_invData_checkBox.Size = new System.Drawing.Size(44, 17);
             this.Decode_invData_checkBox.TabIndex = 55;
@@ -980,6 +985,7 @@ namespace LogicScope
             // 
             // Device_groupBox
             // 
+            this.Device_groupBox.Controls.Add(this.Device_preview_checkBox);
             this.Device_groupBox.Controls.Add(this.Device_comboBox);
             this.Device_groupBox.Controls.Add(this.Device_load_button);
             this.Device_groupBox.Controls.Add(this.Device_refresh_button);
@@ -1189,6 +1195,27 @@ namespace LogicScope
             this.Decode_DHT11_button.UseVisualStyleBackColor = true;
             this.Decode_DHT11_button.Click += new System.EventHandler(this.Decode_DHT11_button_Click);
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(377, 21);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(33, 13);
+            this.label2.TabIndex = 78;
+            this.label2.Text = "(1N8)";
+            // 
+            // Device_preview_checkBox
+            // 
+            this.Device_preview_checkBox.AutoSize = true;
+            this.Device_preview_checkBox.Checked = true;
+            this.Device_preview_checkBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.Device_preview_checkBox.Location = new System.Drawing.Point(203, 73);
+            this.Device_preview_checkBox.Name = "Device_preview_checkBox";
+            this.Device_preview_checkBox.Size = new System.Drawing.Size(64, 17);
+            this.Device_preview_checkBox.TabIndex = 57;
+            this.Device_preview_checkBox.Text = "Preview";
+            this.Device_preview_checkBox.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1228,6 +1255,7 @@ namespace LogicScope
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Logic Analyzer";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             ((System.ComponentModel.ISupportInitialize)(this.graphControl1)).EndInit();
             this.Trig_groupBox.ResumeLayout(false);
@@ -1342,6 +1370,8 @@ namespace LogicScope
         private System.Windows.Forms.ComboBox Decode_range_comboBox;
         private System.Windows.Forms.Button Log_clear_button;
         private System.Windows.Forms.Button Decode_DHT11_button;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox Device_preview_checkBox;
     }
 }
 
