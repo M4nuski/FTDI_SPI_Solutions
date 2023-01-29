@@ -1,7 +1,7 @@
 ﻿#undef LOG_MOUSE
 #undef PREFILL_RANDOM
-#undef PREFILL_PATTERN
-#define PREFILL_FROMFILE
+#define PREFILL_PATTERN
+#undef PREFILL_FROMFILE
 
 using System;
 using System.Collections.Generic;
@@ -863,7 +863,121 @@ namespace LogicScope
         #region data decoding
         private void Decode_UART_button_Click(object sender, EventArgs e)
         {
+            if ((mark1_s == mark2_s) && (Decode_range_comboBox.SelectedIndex == 0))
+            {
+                log("no selection in samples");
+                return;
+            }
+
             int samplesPerBit = sampleRate / int.Parse(Decode_baudrate_textBox.Text);
+            if (samplesPerBit <= 1)
+            {
+                log("samplerate too low to decode UART");
+                return;
+            }
+
+            var index = mark1_s;
+            var endIndex = (Decode_range_comboBox.SelectedIndex == 0) ? mark2_s : dataStream.Length - 1;
+
+            var mask = getDecodeDataMask();
+            dataStream.Seek(index, SeekOrigin.Begin);
+            var currentVal = dataStream.ReadByte() & mask;
+
+            if (currentVal == 0)
+            {
+                log("mark 1 must be on idle state (1)");
+                return;
+            }
+
+            while ((currentVal != 0) && (index < endIndex)) //seek start bit
+            {
+                currentVal = dataStream.ReadByte() & mask;
+                index++;
+            }
+            if (index >= endIndex)
+            {
+                log("reached end mark before start bit");
+                return;
+            }
+
+            tickList.Clear();
+            bigTickList.Clear();
+            tickBit = 3;
+            bigTickList.Add(index);
+            var s = "";
+
+            var nextIndex = index + (samplesPerBit / 2);
+            index = nextIndex;
+            dataStream.Seek(index, SeekOrigin.Begin);
+            bigTickList.Add(nextIndex);
+            currentVal = dataStream.ReadByte() & mask;
+            if (currentVal != 0)
+            {
+                log("invalid start bit length (or incorrect baud rate / sample rate)");
+                bigTickList.Add(index);
+                drawFileGraph(bufferIndex);
+                return;
+            }
+
+            var newVal = currentVal;
+            nextIndex = index + samplesPerBit;
+
+            while (index < endIndex)
+            { 
+                for (var b = 0; b < 8; ++b)
+                {
+                    while ((newVal == currentVal) && (index < nextIndex) && (index < endIndex))
+                    {
+                        newVal = dataStream.ReadByte() & mask;
+                        index++;
+                    }
+                    if (newVal != currentVal)
+                    {
+                        // clock recovery on edge
+                        bigTickList.Add(index);
+                        nextIndex = index + (samplesPerBit / 2);
+                        index = nextIndex;
+                        dataStream.Seek(index, SeekOrigin.Begin);
+                        newVal = dataStream.ReadByte() & mask;
+                    }
+                    //var startSample = index;
+                    //  dataStream.Seek(index, SeekOrigin.Begin);
+                    currentVal = newVal;
+                    tickList.Add(index);
+
+                    s += (currentVal == 0) ? "0" : "1";
+
+                    nextIndex = index + samplesPerBit;
+                }
+
+                if ((nextIndex + (2 * samplesPerBit)) < endIndex) {
+                    var err = false;
+                    index = nextIndex;
+                    dataStream.Seek(index, SeekOrigin.Begin);
+                    bigTickList.Add(index);
+                    newVal = dataStream.ReadByte() & mask;
+                    // should be 1 (stop bit)
+                    if (newVal == 0) err = true;
+
+                    if (!err)
+                    {
+                        index = index + samplesPerBit;
+                        dataStream.Seek(index, SeekOrigin.Begin);
+                        bigTickList.Add(index);
+                        newVal = dataStream.ReadByte() & mask;
+                        // should be 0 (start bit)
+                        if (newVal != 0) err = true;
+                    }
+                    nextIndex = index + samplesPerBit;
+                    currentVal = newVal;
+                    if (err) index = (int)endIndex;
+                }
+
+            }
+
+            log(s);
+            s = reverseBitStringByteLSBFirst(s);
+            decodeBitString(s);
             // start bit
             // 8 data bits, lsb to msb
             // no parity
@@ -871,6 +985,8 @@ namespace LogicScope
             // idle is 1
             // ¯¯¯¯¯¯_01234567¯
             // iiiiiiabbbbbbbbe­­
+
+            drawFileGraph(bufferIndex);
         }
         private void Decode_DHT11_button_Click(object sender, EventArgs e)
         {
@@ -1176,6 +1292,12 @@ namespace LogicScope
             var res = "";
             for (var i = s.Length - 1; i >= 0; --i) res += s[i];
             return res;
+        }
+
+        private string reverseBitStringByteLSBFirst(string s)
+        {
+            var res = reverseBitString(s);
+            return reverseBitStringBytes(res);
         }
 
         private string reverseBitStringBytes(string s)
