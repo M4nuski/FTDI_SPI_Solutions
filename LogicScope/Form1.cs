@@ -75,6 +75,8 @@ namespace LogicScope
         private List<int> bigTickList = new List<int>();
         private int tickBit = 0;
 
+        private dataReader reader;
+
         #region form setup and cleanup
         public Form1()
         {
@@ -210,35 +212,35 @@ namespace LogicScope
         {
             int ba;
             while (run) if (usb.IsOpen)
-            {
-                ba = usb.GetRXbytesAvailable();
-                //DeviceState_label.Text = ba.ToString();
-                if (ba == 0)
                 {
-                    Thread.Sleep(2); // USB pool only every 2 ms at best
-                }
-                else while (ba > 0)
-                {
-                    if (ba > BUFFER_LEN) ba = BUFFER_LEN; // clamp
-                    usb.Read(buffer, ba);
-                    if (invert_mask != 0) processInvert(ba);
-
-                    if (sampling && (radioTrigA.Checked || checkTrig(ba)) )
-                    {
-                        dataStream.Write(buffer, 0, ba);
-                        bufferIndex += ba;
-                        triggered = true;
-                    }
                     ba = usb.GetRXbytesAvailable();
+                    //DeviceState_label.Text = ba.ToString();
+                    if (ba == 0)
+                    {
+                        Thread.Sleep(2); // USB pool only every 2 ms at best
+                    }
+                    else while (ba > 0)
+                        {
+                            if (ba > BUFFER_LEN) ba = BUFFER_LEN; // clamp
+                            usb.Read(buffer, ba);
+                            if (invert_mask != 0) processInvert(ba);
+
+                            if (sampling && (radioTrigA.Checked || checkTrig(ba)))
+                            {
+                                dataStream.Write(buffer, 0, ba);
+                                bufferIndex += ba;
+                                triggered = true;
+                            }
+                            ba = usb.GetRXbytesAvailable();
+                        }
+                    if (Device_preview_checkBox.Checked || triggered) drawUSBGraph();
+                    Application.DoEvents();
                 }
-                if (Device_preview_checkBox.Checked || triggered) drawUSBGraph();
-                Application.DoEvents();
-            }
-            else
-            {
-                Thread.Sleep(250); // throttle down
-                Application.DoEvents();
-            }
+                else
+                {
+                    Thread.Sleep(250); // throttle down
+                    Application.DoEvents();
+                }
         }
 
         private bool checkTrig(int len)
@@ -379,11 +381,11 @@ namespace LogicScope
                 {
                     foreach (var tick in tickList)
                     {
-                        if ( (tick >= offset) && (tick <= (offset + samplesPerView)) )
+                        if ((tick >= offset) && (tick <= (offset + samplesPerView)))
                         {
                             var x = tick - offset;
-                            x = x * z; 
-                            graph.DrawLine(tickPen, x, (BIT_STRIDE * (tickBit+1)) - BIT1_HEIGHT + BIT_OFFSET, x, (BIT_STRIDE * (tickBit+1)) - BIT1_HEIGHT + BIT_OFFSET - TICK_LENGTH);
+                            x = x * z;
+                            graph.DrawLine(tickPen, x, (BIT_STRIDE * (tickBit + 1)) - BIT1_HEIGHT + BIT_OFFSET, x, (BIT_STRIDE * (tickBit + 1)) - BIT1_HEIGHT + BIT_OFFSET - TICK_LENGTH);
                         }
                     }
                 }
@@ -489,7 +491,7 @@ namespace LogicScope
             }
 
             graphControl1.Refresh();
-           // graphControl1.Show();
+            // graphControl1.Show();
         }
 
 
@@ -876,6 +878,9 @@ namespace LogicScope
                 return;
             }
 
+            reader = new dataReader(dataStream);
+            reader.index = mark1_s;
+
             var index = mark1_s;
             var endIndex = (Decode_range_comboBox.SelectedIndex == 0) ? mark2_s : dataStream.Length - 1;
 
@@ -923,12 +928,13 @@ namespace LogicScope
             nextIndex = index + samplesPerBit;
 
             while (index < endIndex)
-            { 
+            {
                 for (var b = 0; b < 8; ++b)
                 {
                     while ((newVal == currentVal) && (index < nextIndex) && (index < endIndex))
                     {
                         newVal = dataStream.ReadByte() & mask;
+
                         index++;
                     }
                     if (newVal != currentVal)
@@ -986,6 +992,8 @@ namespace LogicScope
             // ¯¯¯¯¯¯_01234567¯
             // iiiiiiabbbbbbbbe­­
 
+            // decoder   bool invert enum bitOrder(LSBfirst MSBfirst) enum wordLength (w7 w8 w16 w24 w32 w64)
+
             drawFileGraph(bufferIndex);
         }
         private void Decode_DHT11_button_Click(object sender, EventArgs e)
@@ -1015,7 +1023,7 @@ namespace LogicScope
             }
 
             // seek 1 for end of command low pulse
-            while ((currentVal == 0) && (index < endIndex))            
+            while ((currentVal == 0) && (index < endIndex))
             {
                 currentVal = dataStream.ReadByte() & mask;
                 index++;
@@ -1171,7 +1179,7 @@ namespace LogicScope
 
             bigTickList.Add(index + 1);
 
-            { 
+            {
                 var data = new List<bool>();
                 while ((currentPediod < clockLimit) && (index <= endIndex))
                 {
@@ -1330,7 +1338,7 @@ namespace LogicScope
             var byteIndex = 0;
             for (var i = 0; i < s.Length; i += 8)
             {
-                if ((byteIndex != 0) && ((byteIndex % 8) == 0) )
+                if ((byteIndex != 0) && ((byteIndex % 8) == 0))
                 {
                     sb.Append(sbH);
                     sb.Append(" ");
@@ -1349,7 +1357,7 @@ namespace LogicScope
             sb.Append(sbC);
 
             log(sb.ToString());
-           //log(byteIndex + " bytes.");
+            //log(byteIndex + " bytes.");
         }
         private byte[] getBytesFromBitString(string s)
         {
@@ -1362,7 +1370,7 @@ namespace LogicScope
             while (s.Length % 8 != 0) s += "0"; // pad
 
             var res = new byte[s.Length / 8];
-            for (var i = 0; i < s.Length; i += 8) res[i/8] = (byte)binaryString8charToInt(s.Substring(i, 8));
+            for (var i = 0; i < s.Length; i += 8) res[i / 8] = (byte)binaryString8charToInt(s.Substring(i, 8));
 
             return res;
         }
@@ -1473,7 +1481,7 @@ namespace LogicScope
         {
             if (mark1_s == mark2_s) return;
             if (mark1_s > mark2_s) return;
-            if ((mark1_s > dataStream.Length-1) || (mark2_s > dataStream.Length-1)) return;
+            if ((mark1_s > dataStream.Length - 1) || (mark2_s > dataStream.Length - 1)) return;
 
             int delta = mark2_s - mark1_s;
             var oldStream = dataStream;
@@ -1556,6 +1564,182 @@ namespace LogicScope
         }
 
 
+    }
+
+
+    public class dataReader {
+        private int[] _masks = new int[8] {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+
+        private int _index = 0;
+        public int index { 
+            get {
+                return _index;
+            } 
+            set {
+                setIndex(value);
+            } 
+        }
+
+        private int _maxIndex = 0;
+        public int maxIndex {
+            get {
+                return _maxIndex;
+            }
+            set {
+                setMaxIndex(value);
+            }
+        }
+
+        private int _streamEndIndex;
+        private Stream _data;
+
+        private int _value = -1;
+        public int value {
+            get
+            {
+                return _value;
+            }
+        }
+
+        public dataReader(Stream dataSource)
+        {
+            _data = dataSource;
+            _maxIndex = (int)dataSource.Length - 1;
+            _streamEndIndex = _maxIndex;
+            _data.Seek(0, SeekOrigin.Begin);
+        }
+
+
+
+        private void setIndex(int index)
+        {
+            if (index > _streamEndIndex) index = _streamEndIndex;
+            if (index > _maxIndex) index = _maxIndex;
+            _index = index;
+            _data.Seek(_index, SeekOrigin.Begin);
+            _value = _data.ReadByte();
+        }
+
+        private void setMaxIndex(int index)
+        {
+            if (index > _streamEndIndex) index = _streamEndIndex;
+            _maxIndex = index;
+            if (_index > _maxIndex)
+            {
+                _index = _maxIndex;
+                _data.Seek(_index, SeekOrigin.Begin);
+                _value = _data.ReadByte();
+            }
+        }
+
+
+
+        public int getByteAt(int index)
+        {
+            if (index > _streamEndIndex) return -1;
+            if (index > _maxIndex) return -1;
+            if (index < 0) return -1;
+
+            _index = index;
+            _data.Seek(_index, SeekOrigin.Begin);
+
+            _value = _data.ReadByte();
+            return _value;
+        }
+
+        public int getNextByte()
+        {
+            _index++;
+            if (_index > _streamEndIndex) return -1;
+            if (_index > _maxIndex) return -1;
+
+            _value = _data.ReadByte();
+            return _value;
+        }
+
+        public int seekByteIndex(int val)
+        {
+            if (val == _value) return _index;
+            int currentValue = _value;
+            while ((currentValue != val) && (currentValue != -1))
+            {
+                currentValue = getNextByte();
+            }
+            return (currentValue == -1) ? -1 :_index;
+        }
+
+        public int seekByteChangedIndex(int maxIndex)
+        {
+            if (maxIndex > _maxIndex) maxIndex = _maxIndex;
+            int initialValue = _value;
+            int currentValue = _value;
+            while ((currentValue == initialValue) && (currentValue != -1))
+            {
+                currentValue = getNextByte();
+            }
+            return (currentValue == -1) ? -1 : _index;
+        }
+
+        public int getBit(int bit)
+        {
+            return (_value & _masks[bit]) >> bit;
+        }
+
+        public int getBitAt(int bit, int index)
+        {
+            var res = getByteAt(index);
+            if (res == -1) return -1;
+            return (res & _masks[bit]) >> bit;
+        }
+
+        public int getNextBit(int bit)
+        {
+            var res = getNextByte();
+            if (res == -1) return -1;
+            return (res & _masks[bit]) >> bit;
+        }
+
+        public int seekBitIndex(int bit, int val)
+        {
+            int currentValue = (_value & _masks[bit]) >> bit;
+            if (val == currentValue) return _index;
+            while ((currentValue != val) && (currentValue != -1))
+            {
+                currentValue = getNextByte();
+                if (currentValue != -1) currentValue = (currentValue & _masks[bit]) >> bit;
+            }
+            return (currentValue == -1) ? -1 : _index;
+        }
+
+        public int seekBitChangedIndex(int bit, int maxIndex)
+        {
+            if (maxIndex > _maxIndex) maxIndex = _maxIndex;
+            int initialValue = _value & _masks[bit];
+            int currentValue = _value & _masks[bit];
+            while ((currentValue == initialValue) && (currentValue != -1))
+            {
+                currentValue = getNextByte();
+                if (currentValue != -1) currentValue = currentValue & _masks[bit];
+            }
+            return (currentValue == -1) ? -1 : _index;
+        }
+    }
+
+    public class dataDecoder
+    {
+        public enum bitOrder
+        {
+            LSbitFirst, MSbitFirst
+        }
+        public enum wordLength
+        {
+            w7 = 7, 
+            w8 = 8,
+            w16 = 16,
+            w24 = 24,
+            w32 = 32,
+            w64 = 64
+        }
     }
 
 
