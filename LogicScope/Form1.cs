@@ -1076,18 +1076,30 @@ namespace LogicScope
                 log("no selection in samples");
                 return;
             }
-            var index = mark1_s;
-            var endIndex = (Decode_range_comboBox.SelectedIndex == 0) ? mark2_s : dataStream.Length - 1;
+
+            reader = new dataReader(dataStream);
+            reader.index = mark1_s;
+
+            if (Decode_range_comboBox.SelectedIndex == 0) reader.maxIndex = mark2_s;
+
+            var dataBit = Decode_Data_comboBox.SelectedIndex;
+
+            bigTickList.Clear();
+            tickList.Clear();
+            tickBit = dataBit;
+
             var clockPediod = 256;
             var quaterClock = 0;
+            var halfClock = 0;
             var clockLimit = 0;
             try
             {
                 clockPediod = Int32.Parse(Decode_ClockPer_textBox.Text);
                 quaterClock = clockPediod / 4;
+                halfClock = clockPediod / 2;
                 clockLimit = (int)(clockPediod * 2.5);
 
-                if ((endIndex - index) < clockPediod) throw new Exception("selection length too small for clock period");
+                if ((reader.maxIndex - reader.index) < clockPediod) throw new Exception("selection length too small for clock period");
             }
             catch (Exception ex)
             {
@@ -1095,55 +1107,48 @@ namespace LogicScope
                 return;
             }
 
-            var mask = getDecodeDataMask();
-            dataStream.Seek(index, SeekOrigin.Begin);
-            var currentVal = dataStream.ReadByte() & mask;
-            // seek first change
-            while ((currentVal == (dataStream.ReadByte() & mask)) && (index <= endIndex)) ++index;
+
+            // seek first change to detect start of data
+            reader.seekBitChanged(dataBit);
+            bigTickList.Add(reader.index);
+
+            // advance quater clock
+            reader.offsetIndex(quaterClock);
 
             var currentPediod = 0;
             var s = "";
-            var bitHalf1 = 0;
-            var bitHalf2 = 0;
+            var bitHalf1 = -1;
+            var bitHalf2 = -1;
+            var idleCount = 0;
 
-            tickList.Clear();
-            bigTickList.Clear();
-            tickBit = 7;
-
-            bigTickList.Add(index + 1);
-
-            {
-                var data = new List<bool>();
-                while ((currentPediod < clockLimit) && (index <= endIndex))
+            {   // read raw manchester bits
+                while ((idleCount < 2) && !reader.maxReached)
                 {
-                    currentPediod = index;
-                    // advance quater clock
-                    index += quaterClock;
-                    dataStream.Seek(index++, SeekOrigin.Begin);
-                    currentVal = dataStream.ReadByte() & mask;
-                    bitHalf1 = currentVal;
+                    currentPediod = reader.index;
+                    bitHalf1 = reader.getBit(dataBit);
+                    bigTickList.Add(reader.index);
+                    idleCount = (bitHalf1 == bitHalf2) ? idleCount + 1 : 0;
 
-                    tickList.Add(index);
-
-                    // advance half clock
-                    index += quaterClock * 2;
-                    dataStream.Seek(index++, SeekOrigin.Begin);
-                    currentVal = dataStream.ReadByte() & mask;
-                    bitHalf2 = currentVal;
-
-                    tickList.Add(index);
-
-                    if (Decode_invData_checkBox.Checked)
+                    // advance half clock, checking for change
+                    var inside = reader.seekBitChangedInRange(dataBit, halfClock);
+                    if (inside) // adjust clock
                     {
-                        bitHalf1 = ~bitHalf1;
-                        bitHalf2 = ~bitHalf2;
+                        quaterClock = ((9 * quaterClock) + (reader.index - currentPediod)) / 10;
+                        halfClock = quaterClock * 2;
+                        tickList.Add(reader.index);
+                        reader.offsetIndex(quaterClock);
                     }
 
-                    data.Add(bitHalf1 != 0);
-                    data.Add(bitHalf2 != 0);
+                    var b2index = reader.index;
+                    bitHalf2 = reader.getBit(dataBit);
+                    bigTickList.Add(reader.index);
+                    idleCount = (bitHalf1 == bitHalf2) ? idleCount + 1 : 0;
 
+                    s += (bitHalf1 == 0) ? "0" : "1";
+                    s += (bitHalf2 == 0) ? "0" : "1";
 
-                    s += (bitHalf1 != bitHalf2) ? "0" : "1"; // for debug
+                    // TODO in other decoder functions
+                    //s += ((bitHalf1 != 0) != (bitHalf2 != 0)) ? "0" : "1";
                     // L HL 1 LH 0 // HL and LH phase change can overlap clock cycle
 
                     // M different 1 same 0 // always a change at every clock cycle
@@ -1152,13 +1157,25 @@ namespace LogicScope
                     // D HL vs LH phase change are 1, same phases are 0 // HL and LH phase change can overlap clock cycle
 
                     // seek next change on clock period
-                    while ((currentVal == (dataStream.ReadByte() & mask)) && (index <= endIndex)) ++index;
-                    bigTickList.Add(index);
-                    currentPediod = index - currentPediod;
+                    inside = reader.seekBitChangedInRange(dataBit, halfClock);
+                    if (inside) // adjust clock
+                    {
+                        quaterClock = ((9 * quaterClock) + (reader.index - b2index)) / 10;
+                        halfClock = quaterClock * 2;
+                        tickList.Add(reader.index);
+                        reader.offsetIndex(quaterClock);
+                    }
+
+                    tickList.Add(reader.index);
+                    currentPediod = reader.index - currentPediod;
                 }
-                bigTickList.Add(index);
-                log(s + " " + s.Length + " bits");
-                decodeBitString(s);
+
+                bigTickList.Add(reader.index);
+                log("idle counter: " + idleCount);
+                if (idleCount >= 2) s = s.Substring(0, s.Length - 2); // trim idle bits at the end
+       
+                log(s + " " + s.Length + " raw bits");
+              /*  decodeBitString(s);
 
                 var s2 = reverseBitString(s); // msb - lsb -> lsb - msb
                 decodeBitString(s2);
@@ -1203,7 +1220,7 @@ namespace LogicScope
                 log(s2 + " " + s2.Length + " bits");
                 decodeBitString(s2);
 
-
+                */
             } // read cycle
 
             drawFileGraph(bufferIndex);
