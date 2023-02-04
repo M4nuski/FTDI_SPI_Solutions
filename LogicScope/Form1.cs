@@ -880,26 +880,31 @@ namespace LogicScope
 
             reader = new dataReader(dataStream);
             reader.index = mark1_s;
+            //var index = mark1_s;
 
-            var index = mark1_s;
-            var endIndex = (Decode_range_comboBox.SelectedIndex == 0) ? mark2_s : dataStream.Length - 1;
+            if (Decode_range_comboBox.SelectedIndex == 0) reader.maxIndex = mark2_s;
+            //var endIndex = (Decode_range_comboBox.SelectedIndex == 0) ? mark2_s : dataStream.Length - 1;
 
-            var mask = getDecodeDataMask();
-            dataStream.Seek(index, SeekOrigin.Begin);
-            var currentVal = dataStream.ReadByte() & mask;
+            var dataBit = Decode_Data_comboBox.SelectedIndex;
 
-            if (currentVal == 0)
+            //var mask = getDecodeDataMask();
+            //dataStream.Seek(index, SeekOrigin.Begin);
+            //var currentVal = dataStream.ReadByte() & mask;
+
+            if (reader.getBit(dataBit) == 0)
             {
                 log("mark 1 must be on idle state (1)");
                 return;
             }
 
-            while ((currentVal != 0) && (index < endIndex)) //seek start bit
+            reader.seekBit(dataBit, 0); // start bit
+
+            /*while ((currentVal != 0) && (index < endIndex)) //seek start bit
             {
                 currentVal = dataStream.ReadByte() & mask;
                 index++;
-            }
-            if (index >= endIndex)
+            }*/
+            if (reader.maxReached)
             {
                 log("reached end mark before start bit");
                 return;
@@ -908,76 +913,93 @@ namespace LogicScope
             tickList.Clear();
             bigTickList.Clear();
             tickBit = 3;
-            bigTickList.Add(index);
+            bigTickList.Add(reader.index);
             var s = "";
 
-            var nextIndex = index + (samplesPerBit / 2);
-            index = nextIndex;
-            dataStream.Seek(index, SeekOrigin.Begin);
-            bigTickList.Add(nextIndex);
-            currentVal = dataStream.ReadByte() & mask;
-            if (currentVal != 0)
+
+            //var nextIndex = reader.index + (samplesPerBit / 2);
+            reader.offsetIndex(samplesPerBit / 2); // middle of start bit
+
+            bigTickList.Add(reader.index);
+            //currentVal = dataStream.ReadByte() & mask;
+            if (reader.getBit(dataBit) != 0)
             {
                 log("invalid start bit length (or incorrect baud rate / sample rate)");
-                bigTickList.Add(index);
+                bigTickList.Add(reader.index);
                 drawFileGraph(bufferIndex);
                 return;
             }
 
-            var newVal = currentVal;
-            nextIndex = index + samplesPerBit;
+            //var newVal = currentVal;
+            //nextIndex = index + samplesPerBit;
 
-            while (index < endIndex)
+            while (!reader.maxReached)
             {
                 for (var b = 0; b < 8; ++b)
                 {
-                    while ((newVal == currentVal) && (index < nextIndex) && (index < endIndex))
+                    var bitChangedInRange = reader.seekBitChangedInRange(dataBit, samplesPerBit);
+                    /*while ((newVal == currentVal) && (index < nextIndex) && (index < endIndex))
                     {
                         newVal = dataStream.ReadByte() & mask;
 
                         index++;
-                    }
-                    if (newVal != currentVal)
+                    }*/
+                    if (bitChangedInRange)
                     {
                         // clock recovery on edge
-                        bigTickList.Add(index);
-                        nextIndex = index + (samplesPerBit / 2);
-                        index = nextIndex;
-                        dataStream.Seek(index, SeekOrigin.Begin);
-                        newVal = dataStream.ReadByte() & mask;
+                        bigTickList.Add(reader.index);
+                        //nextIndex = index + (samplesPerBit / 2);
+                        reader.offsetIndex(samplesPerBit / 2);
+                        //index = nextIndex;
+                        //dataStream.Seek(index, SeekOrigin.Begin);
+                        //newVal = dataStream.ReadByte() & mask;
                     }
                     //var startSample = index;
                     //  dataStream.Seek(index, SeekOrigin.Begin);
-                    currentVal = newVal;
-                    tickList.Add(index);
+                    //currentVal = newVal;
+                    tickList.Add(reader.index);
 
-                    s += (currentVal == 0) ? "0" : "1";
+                    s += (reader.getBit(dataBit) == 0) ? "0" : "1";
 
-                    nextIndex = index + samplesPerBit;
+                    //nextIndex = index + samplesPerBit;
                 }
 
-                if ((nextIndex + (2 * samplesPerBit)) < endIndex) {
-                    var err = false;
-                    index = nextIndex;
-                    dataStream.Seek(index, SeekOrigin.Begin);
-                    bigTickList.Add(index);
-                    newVal = dataStream.ReadByte() & mask;
-                    // should be 1 (stop bit)
-                    if (newVal == 0) err = true;
-
-                    if (!err)
-                    {
-                        index = index + samplesPerBit;
-                        dataStream.Seek(index, SeekOrigin.Begin);
-                        bigTickList.Add(index);
-                        newVal = dataStream.ReadByte() & mask;
-                        // should be 0 (start bit)
-                        if (newVal != 0) err = true;
-                    }
-                    nextIndex = index + samplesPerBit;
-                    currentVal = newVal;
-                    if (err) index = (int)endIndex;
+                // assert stop bit, should be 1
+                reader.offsetIndex(samplesPerBit);
+                bigTickList.Add(reader.index);
+                if (!reader.maxReached && (reader.getBit(dataBit) == 1))
+                {
+                    var bitChangedInRange = reader.seekBitChanged(dataBit);
+                    bigTickList.Add(reader.index);
+                    //check for start bit 0 and clock recovery
+                    if (!bitChangedInRange || (reader.getBit(dataBit) != 0)) reader.index = reader.maxIndex;
+                    reader.offsetIndex(samplesPerBit / 2);
                 }
+
+                // seek and assert start bit
+
+                /*  if ((nextIndex + (2 * samplesPerBit)) < endIndex) {
+                      var err = false;
+                      index = nextIndex;
+                      dataStream.Seek(index, SeekOrigin.Begin);
+                      bigTickList.Add(index);
+                      newVal = dataStream.ReadByte() & mask;
+                      // should be 1 (stop bit)
+                      if (newVal == 0) err = true;
+
+                      if (!err)
+                      {
+                          index = index + samplesPerBit;
+                          dataStream.Seek(index, SeekOrigin.Begin);
+                          bigTickList.Add(index);
+                          newVal = dataStream.ReadByte() & mask;
+                          // should be 0 (start bit)
+                          if (newVal != 0) err = true;
+                      }
+                      nextIndex = index + samplesPerBit;
+                      currentVal = newVal;
+                      if (err) index = (int)endIndex;
+                  }*/
 
             }
 
@@ -1568,7 +1590,10 @@ namespace LogicScope
 
 
     public class dataReader {
+
         private int[] _masks = new int[8] {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+
+        public bool maxReached { get; private set; }
 
         private int _index = 0;
         public int index { 
@@ -1593,135 +1618,160 @@ namespace LogicScope
         private int _streamEndIndex;
         private Stream _data;
 
-        private int _value = -1;
-        public int value {
-            get
-            {
-                return _value;
-            }
-        }
+        public int value { get; private set; }
+
 
         public dataReader(Stream dataSource)
         {
             _data = dataSource;
             _maxIndex = (int)dataSource.Length - 1;
             _streamEndIndex = _maxIndex;
+
             _data.Seek(0, SeekOrigin.Begin);
+            value = (dataSource.Length > 0) ?_data.ReadByte() : -1;
+
+            maxReached = (index == _maxIndex);
         }
-
-
 
         private void setIndex(int index)
         {
+            if (index < 0) index = 0;
             if (index > _streamEndIndex) index = _streamEndIndex;
             if (index > _maxIndex) index = _maxIndex;
             _index = index;
+
             _data.Seek(_index, SeekOrigin.Begin);
-            _value = _data.ReadByte();
+            value = _data.ReadByte();
+
+            maxReached = (index >= _maxIndex); 
         }
 
         private void setMaxIndex(int index)
         {
+            if (index < 0) index = 0;
             if (index > _streamEndIndex) index = _streamEndIndex;
             _maxIndex = index;
-            if (_index > _maxIndex)
-            {
-                _index = _maxIndex;
-                _data.Seek(_index, SeekOrigin.Begin);
-                _value = _data.ReadByte();
-            }
+            if (_index > _maxIndex) setIndex(_maxIndex);
+        }
+
+        public void offsetIndex(int offset)
+        {
+            setIndex(_index + offset);
         }
 
 
 
         public int getByteAt(int index)
         {
-            if (index > _streamEndIndex) return -1;
-            if (index > _maxIndex) return -1;
-            if (index < 0) return -1;
-
-            _index = index;
-            _data.Seek(_index, SeekOrigin.Begin);
-
-            _value = _data.ReadByte();
-            return _value;
+            setIndex(index);
+            return value;
         }
 
         public int getNextByte()
         {
-            _index++;
-            if (_index > _streamEndIndex) return -1;
-            if (_index > _maxIndex) return -1;
-
-            _value = _data.ReadByte();
-            return _value;
+            if (maxReached) return value;
+            value = _data.ReadByte();
+            index++;
+            maxReached = (index >= _maxIndex);
+            return value;
         }
 
-        public int seekByteIndex(int val)
+        public bool seekByte(int val)
         {
-            if (val == _value) return _index;
-            int currentValue = _value;
-            while ((currentValue != val) && (currentValue != -1))
-            {
-                currentValue = getNextByte();
-            }
-            return (currentValue == -1) ? -1 :_index;
+            if (val == value) return true;
+
+            while ((value != val) && !maxReached) getNextByte();
+
+            return !maxReached;
         }
 
-        public int seekByteChangedIndex(int maxIndex)
+        public bool seekByteChanged(int indexLimit)
         {
-            if (maxIndex > _maxIndex) maxIndex = _maxIndex;
-            int initialValue = _value;
-            int currentValue = _value;
-            while ((currentValue == initialValue) && (currentValue != -1))
-            {
-                currentValue = getNextByte();
-            }
-            return (currentValue == -1) ? -1 : _index;
+            return seekByteChangedBeforeIndex(maxIndex);
+        }
+        public bool seekByteChangedBeforeIndex(int indexLimit)
+        {
+            if (indexLimit > _maxIndex) indexLimit = _maxIndex;
+
+            int initialValue = value;
+            while ((value == initialValue) && !maxReached && (_index < indexLimit)) getNextByte();
+
+            return _index < indexLimit;
+        }
+
+        public bool seekByteChangedInRange(int range)
+        {
+            var indexLimit = _maxIndex + range;
+            if (indexLimit > _maxIndex) indexLimit = _maxIndex;
+
+            int initialValue = value;
+            while ((value == initialValue) && !maxReached && (_index < indexLimit)) getNextByte();
+
+            return _index < indexLimit;
         }
 
         public int getBit(int bit)
         {
-            return (_value & _masks[bit]) >> bit;
+            return (value & _masks[bit]) >> bit;
         }
 
         public int getBitAt(int bit, int index)
         {
-            var res = getByteAt(index);
-            if (res == -1) return -1;
-            return (res & _masks[bit]) >> bit;
+            getByteAt(index);
+            return (value & _masks[bit]) >> bit;
         }
 
         public int getNextBit(int bit)
         {
-            var res = getNextByte();
-            if (res == -1) return -1;
-            return (res & _masks[bit]) >> bit;
+            getNextByte();
+            return (value & _masks[bit]) >> bit;
         }
 
-        public int seekBitIndex(int bit, int val)
+        public bool seekBit(int bit, int val)
         {
-            int currentValue = (_value & _masks[bit]) >> bit;
-            if (val == currentValue) return _index;
-            while ((currentValue != val) && (currentValue != -1))
+            int currentValue = (value & _masks[bit]) >> bit;
+            if (val == currentValue) return true;
+
+            while ((currentValue != val) && !maxReached)
             {
-                currentValue = getNextByte();
-                if (currentValue != -1) currentValue = (currentValue & _masks[bit]) >> bit;
+                getNextByte();
+                currentValue = (value & _masks[bit]) >> bit;
             }
-            return (currentValue == -1) ? -1 : _index;
+            return !maxReached;
         }
 
-        public int seekBitChangedIndex(int bit, int maxIndex)
+        public bool seekBitChanged(int bit)
         {
-            if (maxIndex > _maxIndex) maxIndex = _maxIndex;
-            int initialValue = _value & _masks[bit];
-            int currentValue = _value & _masks[bit];
-            while ((currentValue == initialValue) && (currentValue != -1))
+            return seekBitChangedBeforeIndex(bit, _maxIndex);
+        }
+
+        public bool seekBitChangedBeforeIndex(int bit, int indexLimit)
+        {
+            if (indexLimit > _maxIndex) indexLimit = _maxIndex;
+            int initialValue = value & _masks[bit];
+            int currentValue = value & _masks[bit];
+
+            while ((currentValue == initialValue) && !maxReached && (_index < indexLimit))
             {
-                currentValue = getNextByte();
-                if (currentValue != -1) currentValue = currentValue & _masks[bit];
+                getNextByte();
+                currentValue = value & _masks[bit];
             }
-            return (currentValue == -1) ? -1 : _index;
+            return _index < indexLimit;
+        }
+
+        public bool seekBitChangedInRange(int bit, int range)
+        {
+            var indexLimit = _index + range;
+            if (indexLimit > _maxIndex) indexLimit = _maxIndex;
+            int initialValue = value & _masks[bit];
+            int currentValue = value & _masks[bit];
+
+            while ((currentValue == initialValue) && !maxReached && (_index < indexLimit))
+            {
+                getNextByte();
+                currentValue = value & _masks[bit];
+            }
+            return _index < indexLimit;
         }
     }
 
