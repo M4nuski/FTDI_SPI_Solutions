@@ -880,16 +880,10 @@ namespace LogicScope
 
             reader = new dataReader(dataStream);
             reader.index = mark1_s;
-            //var index = mark1_s;
 
             if (Decode_range_comboBox.SelectedIndex == 0) reader.maxIndex = mark2_s;
-            //var endIndex = (Decode_range_comboBox.SelectedIndex == 0) ? mark2_s : dataStream.Length - 1;
 
             var dataBit = Decode_Data_comboBox.SelectedIndex;
-
-            //var mask = getDecodeDataMask();
-            //dataStream.Seek(index, SeekOrigin.Begin);
-            //var currentVal = dataStream.ReadByte() & mask;
 
             if (reader.getBit(dataBit) == 0)
             {
@@ -899,11 +893,6 @@ namespace LogicScope
 
             reader.seekBit(dataBit, 0); // start bit
 
-            /*while ((currentVal != 0) && (index < endIndex)) //seek start bit
-            {
-                currentVal = dataStream.ReadByte() & mask;
-                index++;
-            }*/
             if (reader.maxReached)
             {
                 log("reached end mark before start bit");
@@ -912,16 +901,13 @@ namespace LogicScope
 
             tickList.Clear();
             bigTickList.Clear();
-            tickBit = 3;
+            tickBit = dataBit;
             bigTickList.Add(reader.index);
             var s = "";
 
-
-            //var nextIndex = reader.index + (samplesPerBit / 2);
             reader.offsetIndex(samplesPerBit / 2); // middle of start bit
 
             bigTickList.Add(reader.index);
-            //currentVal = dataStream.ReadByte() & mask;
             if (reader.getBit(dataBit) != 0)
             {
                 log("invalid start bit length (or incorrect baud rate / sample rate)");
@@ -930,38 +916,21 @@ namespace LogicScope
                 return;
             }
 
-            //var newVal = currentVal;
-            //nextIndex = index + samplesPerBit;
-
             while (!reader.maxReached)
             {
                 for (var b = 0; b < 8; ++b)
                 {
                     var bitChangedInRange = reader.seekBitChangedInRange(dataBit, samplesPerBit);
-                    /*while ((newVal == currentVal) && (index < nextIndex) && (index < endIndex))
-                    {
-                        newVal = dataStream.ReadByte() & mask;
 
-                        index++;
-                    }*/
                     if (bitChangedInRange)
                     {
                         // clock recovery on edge
                         bigTickList.Add(reader.index);
-                        //nextIndex = index + (samplesPerBit / 2);
                         reader.offsetIndex(samplesPerBit / 2);
-                        //index = nextIndex;
-                        //dataStream.Seek(index, SeekOrigin.Begin);
-                        //newVal = dataStream.ReadByte() & mask;
                     }
-                    //var startSample = index;
-                    //  dataStream.Seek(index, SeekOrigin.Begin);
-                    //currentVal = newVal;
                     tickList.Add(reader.index);
 
                     s += (reader.getBit(dataBit) == 0) ? "0" : "1";
-
-                    //nextIndex = index + samplesPerBit;
                 }
 
                 // assert stop bit, should be 1
@@ -975,32 +944,6 @@ namespace LogicScope
                     if (!bitChangedInRange || (reader.getBit(dataBit) != 0)) reader.index = reader.maxIndex;
                     reader.offsetIndex(samplesPerBit / 2);
                 }
-
-                // seek and assert start bit
-
-                /*  if ((nextIndex + (2 * samplesPerBit)) < endIndex) {
-                      var err = false;
-                      index = nextIndex;
-                      dataStream.Seek(index, SeekOrigin.Begin);
-                      bigTickList.Add(index);
-                      newVal = dataStream.ReadByte() & mask;
-                      // should be 1 (stop bit)
-                      if (newVal == 0) err = true;
-
-                      if (!err)
-                      {
-                          index = index + samplesPerBit;
-                          dataStream.Seek(index, SeekOrigin.Begin);
-                          bigTickList.Add(index);
-                          newVal = dataStream.ReadByte() & mask;
-                          // should be 0 (start bit)
-                          if (newVal != 0) err = true;
-                      }
-                      nextIndex = index + samplesPerBit;
-                      currentVal = newVal;
-                      if (err) index = (int)endIndex;
-                  }*/
-
             }
 
             log(s);
@@ -1014,8 +957,6 @@ namespace LogicScope
             // ¯¯¯¯¯¯_01234567¯
             // iiiiiiabbbbbbbbe­­
 
-            // decoder   bool invert enum bitOrder(LSBfirst MSBfirst) enum wordLength (w7 w8 w16 w24 w32 w64)
-
             drawFileGraph(bufferIndex);
         }
         private void Decode_DHT11_button_Click(object sender, EventArgs e)
@@ -1025,105 +966,89 @@ namespace LogicScope
                 log("no selection in samples");
                 return;
             }
-            var index = mark1_s;
-            var endIndex = (Decode_range_comboBox.SelectedIndex == 0) ? mark2_s : dataStream.Length - 1;
 
-            var mask = getDecodeDataMask();
-            dataStream.Seek(index, SeekOrigin.Begin);
-            var currentVal = dataStream.ReadByte() & mask;
+            reader = new dataReader(dataStream);
+            reader.index = mark1_s;
 
-            // assume mark1 is in the low MCU command pulse if low, before MCU command pulse if high
-            while ((currentVal != 0) && (index < endIndex)) //seek command pulse
+            if (Decode_range_comboBox.SelectedIndex == 0) reader.maxIndex = mark2_s;
+
+            var dataBit = Decode_Data_comboBox.SelectedIndex;
+
+            bigTickList.Clear();
+            tickList.Clear();
+            tickBit = dataBit;
+
+            // assume idle before MCU low pulse
+            if (reader.getBit(dataBit) == 1) reader.seekBit(dataBit, 0);
+            if (reader.maxReached)
             {
-                currentVal = dataStream.ReadByte() & mask;
-                index++;
-            }
-            if (index >= endIndex)
-            {
-                log("reached end mark before start of data");
+                log("reached end mark before start of MCU low pulse");
                 return;
             }
+            bigTickList.Add(reader.index);
 
-            // seek 1 for end of command low pulse
-            while ((currentVal == 0) && (index < endIndex))
+            // end of MCU low pulse
+            reader.seekBit(dataBit, 1); 
+            if (reader.maxReached)
             {
-                currentVal = dataStream.ReadByte() & mask;
-                index++;
-            }
-            if (index >= endIndex)
-            {
-                log("reached end mark before end of command pulse");
+                log("reached end mark before end of MCU low pulse");
                 return;
             }
+            bigTickList.Add(reader.index);
 
-            // seek 0 for start of DHT11 response setup pulse
-            while ((currentVal != 0) && (index < endIndex))
+            reader.seekBit(dataBit, 0);
+            if (reader.maxReached)
             {
-                currentVal = dataStream.ReadByte() & mask;
-                index++;
+                log("reached end mark before start of DHT11 low response setup pulse");
+                return;
             }
-            if (index >= endIndex)
+            bigTickList.Add(reader.index);
+
+            reader.seekBit(dataBit, 1);
+            if (reader.maxReached)
+            {
+                log("reached end mark before end of DHT11 low response setup pulse");
+                return;
+            }
+            bigTickList.Add(reader.index);
+
+            reader.seekBit(dataBit, 0);
+            if (reader.maxReached)
             {
                 log("reached end mark before start of DHT11 response pulse");
                 return;
             }
-
-            // seek 1 for end of DHT11 response setup pulse
-            while ((currentVal == 0) && (index < endIndex))
-            {
-                currentVal = dataStream.ReadByte() & mask;
-                index++;
-            }
-            if (index >= endIndex)
-            {
-                log("reached end mark before end of DHT11 response pulse");
-                return;
-            }
-
-            // seek 0 for end of DHT11 response setup pulse
-            while ((currentVal != 0) && (index < endIndex))
-            {
-                currentVal = dataStream.ReadByte() & mask;
-                index++;
-            }
-            if (index >= endIndex)
-            {
-                log("reached end mark before end of DHT11 setup pulse");
-                return;
-            }
+            bigTickList.Add(reader.index);
 
             var nBits = 0;
             int refClockPeriod;
             int bitClockPeriod;
             var s = "";
 
-            while ((nBits < 40) && (index < endIndex)) // signal now at 0
+            while ((nBits < 40) && !reader.maxReached) // signal now at 0
             {
-                refClockPeriod = index;
+                refClockPeriod = reader.index;
                 // next 1 is rising edge and end of ref time, start of bit time
-                while ((currentVal == 0) && (index < endIndex))
-                {
-                    currentVal = dataStream.ReadByte() & mask;
-                    index++;
-                }
-                refClockPeriod = index - refClockPeriod;
-                bitClockPeriod = index;
+                reader.seekBit(dataBit, 1);
+                bigTickList.Add(reader.index);
+
+                refClockPeriod = reader.index - refClockPeriod;
+                bitClockPeriod = reader.index;
+
+                tickList.Add(reader.index + refClockPeriod);
 
                 // next 0 is end of bit time, start of next ref time
-                while ((currentVal != 0) && (index < endIndex))
-                {
-                    currentVal = dataStream.ReadByte() & mask;
-                    index++;
-                }
-                bitClockPeriod = index - bitClockPeriod;
-
+                reader.seekBit(dataBit, 0);
+                bitClockPeriod = reader.index - bitClockPeriod;
 
                 s += (bitClockPeriod > refClockPeriod) ? "1" : "0";
                 nBits++;
             }
+
             log(s + " " + s.Length + " bits");
             decodeBitString(s);
-            if (index >= endIndex)
+
+            if (reader.maxReached)
             {
                 log("reached end mark before reading 40 bits of data");
                 return;
@@ -1140,23 +1065,9 @@ namespace LogicScope
                 return;
             }
             log("RH: " + b[0] + "." + b[1] + "%, T: " + b[2] + "." + b[3] + "C");
-
-
+            drawFileGraph(bufferIndex);
         }
 
-        // todo decoder class:
-        // seekChange
-        // seek0
-        // seek1
-        // advanceBy
-        // currentValue
-        // setDataBit
-        // setDataInvert
-        // setClockBit
-        // setClockInvert
-        // setMaxIdle
-        // index
-        // value
 
         private void Decode_Manchester_button_Click(object sender, EventArgs e)
         {
