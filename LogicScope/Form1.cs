@@ -1068,6 +1068,99 @@ namespace LogicScope
             drawFileGraph(bufferIndex);
         }
 
+        private void Decode_caliper_button_Click(object sender, EventArgs e)
+        {
+            if ((mark1_s == mark2_s) && (Decode_range_comboBox.SelectedIndex == 0))
+            {
+                log("no selection in samples");
+                return;
+            }
+
+            reader = new dataReader(dataStream);
+            reader.index = mark1_s;
+
+            if (Decode_range_comboBox.SelectedIndex == 0) reader.maxIndex = mark2_s;
+
+            var dataBit = Decode_Data_comboBox.SelectedIndex;
+            var clockBit = Decode_Clock_comboBox.SelectedIndex;
+
+            bigTickList.Clear();
+            tickList.Clear();
+            tickBit = dataBit;
+
+            // default value sampled at idle
+            var defaultDataValue = reader.getBitAt(dataBit, mark1_s);
+
+            /*
+            0011 0011 1011 1011 1111 0110
+            5124 8624 8624 8624 8624 s  i
+            .     136 2512 4998 6374
+            0         1250 0013 7501
+                         1 2486 2512
+                          1 3636
+                          12 
+
+            -116.26mm
+            1010 1001 0100 1011 1111 0111
+            1248 1361                s  mm/100
+                 6242
+                    8
+            */
+            // read 24 bits
+            // idle values are "1"
+
+            while (!reader.maxReached)
+            {
+
+                var nBits = 0;
+                var s = "";
+
+                while ((nBits < 24) && !reader.maxReached) // signal now at 0
+                {
+                    // seek clock 1
+                    reader.seekBitChanged(clockBit);
+
+                    // seek clock 0
+                    reader.seekBitChanged(clockBit);
+                    bigTickList.Add(reader.index);
+
+                    // read bit
+                    s += (reader.getBit(dataBit) == defaultDataValue) ? "1" : "0";
+
+                    nBits++;
+                }
+
+                if (reader.maxReached)
+                {
+                    log("Reached end of data before 24th bit");
+                    return;
+                }
+
+                log(s);
+                if (s[23] == '0')
+                {
+                    // metric
+                    var v = binaryStringToInt(s.Substring(0, 20));
+                    if (s[20] == '1') v = -v;
+                    var f = (float)v;
+                    f = f / 100.0f;
+                    log(f.ToString("F2") + " mm");
+                }
+                else
+                {
+                    // inches
+                    var v = binaryStringToInt(s.Substring(0, 20));
+                    if (s[20] == '1') v = -v;
+                    var f = (float)v;
+                    f = f / 2000.0f;
+                    log(f.ToString("F4") + " inches");
+                }
+
+            }
+
+
+
+        }
 
         private void Decode_Manchester_button_Click(object sender, EventArgs e)
         {
@@ -1338,6 +1431,31 @@ namespace LogicScope
             if (s[6] == '1') res |= 0x02;
             if (s[7] == '1') res |= 0x01;
 
+            return res;
+        }
+
+        private int binaryStringToInt(string s, bool msbFirst = false)
+        {
+            if (s.Length == 0) return 0;
+
+            var res = 0;
+            if (msbFirst)
+            {
+                var val = 1 << (s.Length-1);
+                foreach (var c in s)
+                {
+                    if (c == '1') res += val;
+                    val = val >> 1;
+                }
+            } else
+            {
+                var val = 1;
+                foreach (var c in s)
+                {
+                    if (c == '1') res += val;
+                    val = val << 1;
+                }
+            }
             return res;
         }
 

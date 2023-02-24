@@ -127,6 +127,7 @@ namespace LogicScope
             this.Graph_Seek0_button = new System.Windows.Forms.Button();
             this.Log_clear_button = new System.Windows.Forms.Button();
             this.Decode_DHT11_button = new System.Windows.Forms.Button();
+            this.Decode_caliper_button = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.graphControl1)).BeginInit();
             this.Trig_groupBox.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -906,6 +907,8 @@ namespace LogicScope
             // groupBox2
             // 
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox2.Controls.Add(this.Decode_caliper_button);
+            this.groupBox2.Controls.Add(this.Decode_DHT11_button);
             this.groupBox2.Controls.Add(this.label2);
             this.groupBox2.Controls.Add(this.Decode_range_comboBox);
             this.groupBox2.Controls.Add(this.label1);
@@ -926,7 +929,7 @@ namespace LogicScope
             this.groupBox2.Controls.Add(this.Decode_baudrate_textBox);
             this.groupBox2.Location = new System.Drawing.Point(8, 622);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(573, 113);
+            this.groupBox2.Size = new System.Drawing.Size(672, 113);
             this.groupBox2.TabIndex = 71;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Serial Decode";
@@ -1208,7 +1211,7 @@ namespace LogicScope
             // 
             // Decode_DHT11_button
             // 
-            this.Decode_DHT11_button.Location = new System.Drawing.Point(483, 696);
+            this.Decode_DHT11_button.Location = new System.Drawing.Point(573, 18);
             this.Decode_DHT11_button.Name = "Decode_DHT11_button";
             this.Decode_DHT11_button.Size = new System.Drawing.Size(92, 23);
             this.Decode_DHT11_button.TabIndex = 77;
@@ -1216,12 +1219,21 @@ namespace LogicScope
             this.Decode_DHT11_button.UseVisualStyleBackColor = true;
             this.Decode_DHT11_button.Click += new System.EventHandler(this.Decode_DHT11_button_Click);
             // 
+            // Decode_caliper_button
+            // 
+            this.Decode_caliper_button.Location = new System.Drawing.Point(573, 46);
+            this.Decode_caliper_button.Name = "Decode_caliper_button";
+            this.Decode_caliper_button.Size = new System.Drawing.Size(92, 23);
+            this.Decode_caliper_button.TabIndex = 79;
+            this.Decode_caliper_button.Text = "Decode Caliper";
+            this.Decode_caliper_button.UseVisualStyleBackColor = true;
+            this.Decode_caliper_button.Click += new System.EventHandler(this.Decode_caliper_button_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1138, 883);
-            this.Controls.Add(this.Decode_DHT11_button);
             this.Controls.Add(this.Log_clear_button);
             this.Controls.Add(this.Graph_Seek0_button);
             this.Controls.Add(this.viewDataBox);
@@ -1372,6 +1384,7 @@ namespace LogicScope
         private System.Windows.Forms.Button Decode_DHT11_button;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox Device_preview_checkBox;
+        private System.Windows.Forms.Button Decode_caliper_button;
     }
 }
 
