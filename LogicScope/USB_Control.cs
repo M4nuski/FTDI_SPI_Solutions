@@ -152,11 +152,11 @@ namespace LogicScope
 
         public void WriteString(string s)
         {
-            // TODO with encoding and such
+            // TODO with encoding and line ending
         }
         public void ReadString(ref string s) 
         {
-            // TODO with encoding and such
+            // TODO with encoding and line ending
         }
         public int GetRXbytesAvailable()
         {

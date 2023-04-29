@@ -123,11 +123,12 @@ namespace LogicScope
             this.ViewWidth_t_label = new System.Windows.Forms.Label();
             this.MousePos_t_label = new System.Windows.Forms.Label();
             this.ViewWidth_s_label = new System.Windows.Forms.Label();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.timer_slowUpdate = new System.Windows.Forms.Timer(this.components);
             this.Graph_Seek0_button = new System.Windows.Forms.Button();
             this.Log_clear_button = new System.Windows.Forms.Button();
             this.Decode_DHT11_button = new System.Windows.Forms.Button();
             this.Decode_caliper_button = new System.Windows.Forms.Button();
+            this.timer_fastUpdate = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.graphControl1)).BeginInit();
             this.Trig_groupBox.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1182,10 +1183,10 @@ namespace LogicScope
             this.ViewWidth_s_label.TabIndex = 75;
             this.ViewWidth_s_label.Text = "2000000 samples/view";
             // 
-            // timer1
+            // timer_slowUpdate
             // 
-            this.timer1.Enabled = true;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.timer_slowUpdate.Enabled = true;
+            this.timer_slowUpdate.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // Graph_Seek0_button
             // 
@@ -1228,6 +1229,12 @@ namespace LogicScope
             this.Decode_caliper_button.Text = "Decode Caliper";
             this.Decode_caliper_button.UseVisualStyleBackColor = true;
             this.Decode_caliper_button.Click += new System.EventHandler(this.Decode_caliper_button_Click);
+            // 
+            // timer_fastUpdate
+            // 
+            this.timer_fastUpdate.Enabled = true;
+            this.timer_fastUpdate.Interval = 10;
+            this.timer_fastUpdate.Tick += new System.EventHandler(this.timer_fastUpdate_Tick);
             // 
             // Form1
             // 
@@ -1354,7 +1361,7 @@ namespace LogicScope
         private System.Windows.Forms.GroupBox viewDataBox;
         private System.Windows.Forms.Label MousePos_t_label;
         private System.Windows.Forms.Label Sampling_State_label;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer timer_slowUpdate;
         private System.Windows.Forms.Label Sampling_Rate_label;
         private System.Windows.Forms.Label Sampling_Total_label;
         private System.Windows.Forms.Label ViewTperDiv_label;
@@ -1385,6 +1392,7 @@ namespace LogicScope
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox Device_preview_checkBox;
         private System.Windows.Forms.Button Decode_caliper_button;
+        private System.Windows.Forms.Timer timer_fastUpdate;
     }
 }
 

@@ -77,6 +77,8 @@ namespace LogicScope
 
         private dataReader reader;
 
+        private int count = 0;
+
         #region form setup and cleanup
         public Form1()
         {
@@ -143,8 +145,49 @@ namespace LogicScope
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.BeginInvoke(new loopDelegate(Application_Loop));
+            //try
+           // {
+               // this.BeginInvoke(new loopDelegate(Application_Loop));
+            // } catch (Exception ex) {
+            //   System.Diagnostics.Debug.WriteLine("Exception in loop: " + ex.Message);
+            //}
+        //    Application.Idle += Application_Idle;
         }
+
+        /*private void Application_Idle(object sender, EventArgs e)
+        {
+            int ba;
+            count++;
+            if (run && usb.IsOpen) try
+            {
+                ba = usb.GetRXbytesAvailable();
+          
+                while (ba > 0)
+                {
+                    if (ba > BUFFER_LEN) ba = BUFFER_LEN; // clamp
+                    usb.Read(buffer, ba);
+                    if (invert_mask != 0) processInvert(ba);
+
+                    if (sampling && (radioTrigA.Checked || checkTrig(ba)))
+                    {
+                        dataStream.Write(buffer, 0, ba);
+                        bufferIndex += ba;
+                        triggered = true;
+                    }
+                    ba = usb.GetRXbytesAvailable();
+                }
+                if (Device_preview_checkBox.Checked || triggered) drawUSBGraph();
+            }
+            catch (Exception ex)
+            {
+                log("Error in USB read loop: " + ex.Message);
+                Console.WriteLine("Error in USB read loop: " + ex.Message);
+                button6_Click(null, null);
+                button3_Click(null, null);
+                run = false;
+            }
+        }*/
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             usb.CloseDevice();
@@ -153,6 +196,7 @@ namespace LogicScope
         #endregion
         private void timer1_Tick(object sender, EventArgs e)
         {
+            this.Text = (count.ToString());
             if (usb.IsOpen)
             {
                 Sampling_State_label.Text = (sampling ? "Sampling " : "Hold ") + (triggered ? " Trig" : "");
@@ -208,41 +252,53 @@ namespace LogicScope
             buttonColorChanged = false;
         }
 
-        private void Application_Loop()
+        /*private void Application_Loop()
         {
             int ba;
-            while (run) if (usb.IsOpen)
-                {
-                    ba = usb.GetRXbytesAvailable();
-                    //DeviceState_label.Text = ba.ToString();
-                    if (ba == 0)
-                    {
-                        Thread.Sleep(2); // USB pool only every 2 ms at best
-                    }
-                    else while (ba > 0)
-                        {
-                            if (ba > BUFFER_LEN) ba = BUFFER_LEN; // clamp
-                            usb.Read(buffer, ba);
-                            if (invert_mask != 0) processInvert(ba);
 
-                            if (sampling && (radioTrigA.Checked || checkTrig(ba)))
-                            {
-                                dataStream.Write(buffer, 0, ba);
-                                bufferIndex += ba;
-                                triggered = true;
-                            }
-                            ba = usb.GetRXbytesAvailable();
-                        }
-                    if (Device_preview_checkBox.Checked || triggered) drawUSBGraph();
-                    Application.DoEvents();
-                }
-                else
+            while (run) try
                 {
-                    Thread.Sleep(250); // throttle down
-                    Application.DoEvents();
+                    if (usb.IsOpen)
+                    {
+                        ba = usb.GetRXbytesAvailable();
+                        //DeviceState_label.Text = ba.ToString();
+                        if (ba == 0)
+                        {
+                            Thread.Sleep(2); // USB pool only every 2 ms at best
+                        }
+                        else while (ba > 0)
+                            {
+                                if (ba > BUFFER_LEN) ba = BUFFER_LEN; // clamp
+                                usb.Read(buffer, ba);
+                                if (invert_mask != 0) processInvert(ba);
+
+                                if (sampling && (radioTrigA.Checked || checkTrig(ba)))
+                                {
+                                    dataStream.Write(buffer, 0, ba);
+                                    bufferIndex += ba;
+                                    triggered = true;
+                                }
+                                ba = usb.GetRXbytesAvailable();
+                            }
+                        if (Device_preview_checkBox.Checked || triggered) drawUSBGraph();
+                        Application.DoEvents();
+                        Thread.Sleep(10);
+                    }
+                    else
+                    {
+                        Thread.Sleep(250); // throttle down
+                        Application.DoEvents();
+                    }
+                } catch (Exception ex)
+                {
+                    log("Error in USB read loop: " + ex.Message);
+                    Console.WriteLine("Error in USB read loop: " + ex.Message);
+                    button6_Click(null, null);
+                    button3_Click(null, null);
+                    run = false;
                 }
         }
-
+        */
         private bool checkTrig(int len)
         {
             if (trig_level_comboBox.Text == "0")
@@ -733,7 +789,7 @@ namespace LogicScope
             sampling = true;
             usb.Purge(true, true);
             log("Sampling Started");
-            //dataStream.Seek(0, SeekOrigin.End);
+            dataStream.Seek(0, SeekOrigin.End);
             bufferIndex = 0;
             setZoomLevel(0); // 512 samples per view
             setScrollBarMax();
@@ -870,7 +926,7 @@ namespace LogicScope
                 log("no selection in samples");
                 return;
             }
-
+            // todo quarter clock rate with incremental advance
             int samplesPerBit = sampleRate / int.Parse(Decode_baudrate_textBox.Text);
             if (samplesPerBit <= 1)
             {
@@ -1070,6 +1126,17 @@ namespace LogicScope
 
         private void Decode_caliper_button_Click(object sender, EventArgs e)
         {
+            // Weird USB connection from chineese DRO scale
+            // Data     Red
+            // Ground   Green
+            // Clock    White
+            // Power (1.5V - 3.0V)  Black
+
+            // Mastercraft calipers
+            // Ground
+            // Data
+            // Clock
+            // Power (1.5V)
             if ((mark1_s == mark2_s) && (Decode_range_comboBox.SelectedIndex == 0))
             {
                 log("no selection in samples");
@@ -1132,7 +1199,8 @@ namespace LogicScope
 
                 if (reader.maxReached)
                 {
-                    log("Reached end of data before 24th bit");
+                    log("Reached end of data");
+                    drawFileGraph(bufferIndex);
                     return;
                 }
 
@@ -1158,8 +1226,7 @@ namespace LogicScope
 
             }
 
-
-
+            drawFileGraph(bufferIndex);
         }
 
         private void Decode_Manchester_button_Click(object sender, EventArgs e)
@@ -1437,8 +1504,9 @@ namespace LogicScope
         private int binaryStringToInt(string s, bool msbFirst = false)
         {
             if (s.Length == 0) return 0;
-
-            var res = 0;
+            if (s.Length > 31) return -1;
+            
+            int res = 0;
             if (msbFirst)
             {
                 var val = 1 << (s.Length-1);
@@ -1631,7 +1699,39 @@ namespace LogicScope
             graphControl1.Focus();
         }
 
+        private void timer_fastUpdate_Tick(object sender, EventArgs e)
+        {
+            int ba;
+            count++;
+            if (run && usb.IsOpen) try
+                {
+                    ba = usb.GetRXbytesAvailable();
 
+                    while (ba > 0)
+                    {
+                        if (ba > BUFFER_LEN) ba = BUFFER_LEN; // clamp
+                        usb.Read(buffer, ba);
+                        if (invert_mask != 0) processInvert(ba);
+
+                        if (sampling && (radioTrigA.Checked || checkTrig(ba)))
+                        {
+                            dataStream.Write(buffer, 0, ba);
+                            bufferIndex += ba;
+                            triggered = true;
+                        }
+                        ba = usb.GetRXbytesAvailable();
+                    }
+                    if (Device_preview_checkBox.Checked || triggered) drawUSBGraph();
+                }
+                catch (Exception ex)
+                {
+                    log("Error in USB read loop: " + ex.Message);
+                    Console.WriteLine("Error in USB read loop: " + ex.Message);
+                    button6_Click(null, null);
+                    button3_Click(null, null);
+                    run = false;
+                }
+        }
     }
 
 
@@ -1836,6 +1936,8 @@ namespace LogicScope
             w32 = 32,
             w64 = 64
         }
+
+        // result is list of uint64
     }
 
 
