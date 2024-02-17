@@ -62,6 +62,8 @@ namespace SPI_TFT
         private const byte ST7735_GMCTRP1 = 0xE0;
         private const byte ST7735_GMCTRN1 = 0xE1;
 
+        private byte[] ST7735_RGB_MODES = { 0x03, 0x05, 0x06 }; // 444 565 666
+
         private int bulksize;
         private int numPixels;
         private byte pixelDataBuffer;
@@ -173,16 +175,11 @@ namespace SPI_TFT
                 sendDTA(0x00); sendDTA(0x9F);
 
                 numPixels = 0;
-                if (rgbmodeCheckBox.Checked)
-                {
+
                     sendCMD(ST7735_COLMOD);
-                    sendDTA(0x06); //rgb666
-                }
-                else
-                {
-                    sendCMD(ST7735_COLMOD);
-                    sendDTA(0x03); //rgb444
-                }
+                    sendDTA(ST7735_RGB_MODES[BPPcomboBox.SelectedIndex]); //rgb666
+
+
                 sendCMD(ST7735_RAMWR);
                 using (var img = new Bitmap("quinn.bmp"))
 
@@ -222,35 +219,58 @@ namespace SPI_TFT
 
         private void sendcolor(byte r, byte g, byte b)
         {
-            if (rgbmodeCheckBox.Checked) // RGB666 - sent as RGB888
+            switch (BPPcomboBox.SelectedIndex)
             {
-                addtobulk(r);
-                addtobulk(g);
-                addtobulk(b);
+                case 0: // 444 12bits 4K 1.5Bytes/Pixel
+                    if ((numPixels % 2) == 0) //"first" pixel
+                    {
+                        pixelDataBuffer = (byte)(r & 0xF0);     //R1 HN
+                        // r7 r6 r5 r4  00 00 00 00
+                        pixelDataBuffer |= (byte)(g >> 4);      //G1 LN
+                        // r7 r6 r5 r4  g7 g6 g5 g4
+                        addtobulk(pixelDataBuffer);             //Byte 0 : R1 G1
+
+                        pixelDataBuffer = (byte)(b & 0xF0);     //B1 HN
+                        // b7 b6 b5 b4  00 00 00 00
+                    }
+                    else                    //"second" pixel
+                    {
+                        pixelDataBuffer |= (byte)(r >> 4);      //R2 LN
+                        // b7 b6 b5  b4 r7 r6 r5 r4
+                        addtobulk(pixelDataBuffer);             //Byte 1 : B1 R2
+
+                        pixelDataBuffer = (byte)(g & 0xF0);   //G2 HN
+                        // g7 g6 g5 g4  00 00 00 00
+                        pixelDataBuffer |= (byte)(b >> 4);      //B2 LN
+                        addtobulk(pixelDataBuffer);             //Byte 2 : G2 B2
+                        // g7 g6 g5 g4  b7 b6 b5 b4
+                    }
+                    numPixels++;
+                    break;
+
+
+                case 1: // 565 16bits 65K 2Bytes/pixel
+                    pixelDataBuffer = (byte)(r & 0xF8);     //R 5 top bits
+                    // r7 r6 r5 r4  r3 00 00 00
+                    pixelDataBuffer |= (byte)(g >> 5);      //G high 3 bits
+                    // r7 r6 r5 r4  r3 g7 g6 g5
+                    addtobulk(pixelDataBuffer);             //Byte 0
+
+                    pixelDataBuffer = (byte)((g << 3) & 0xE0); //G low 3 bits
+                    // g4 g3 g2 00  00 00 00 00
+                    pixelDataBuffer |= (byte)(b >> 3);      //B 5 top bit
+                    // g4 g3 g2 b7  b6 b5 b4 b3
+                    addtobulk(pixelDataBuffer);             //Byte 1
+
+                    break;
+
+                case 2: // 666 18bits 262K 3Bytes/pixel
+                    //sent as RGB888
+                    addtobulk(r);
+                    addtobulk(g);
+                    addtobulk(b);
+                    break;
             }
-            else                        // RGB444
-            {
-                if ((numPixels % 2) == 0) //"first" pixel
-                {
-                    pixelDataBuffer = (byte)(r & 0xF0);     //R1 HN
-                    pixelDataBuffer |= (byte)(g >> 4);      //G1 LN
-                    addtobulk(pixelDataBuffer);             //Byte 0 : R1 G1
-
-                    pixelDataBuffer = (byte)(b & 0xF0);     //B1 HN
-                }
-                else                    //"second" pixel
-                {
-                    pixelDataBuffer |= (byte)(r >> 4);      //R2 LN
-                    addtobulk(pixelDataBuffer);             //Byte 1 : B1 R2
-
-                    pixelDataBuffer = (byte)(g  & 0xF0);   //G2 HN
-                    pixelDataBuffer |= (byte)(b >> 4);      //B2 LN
-                    addtobulk(pixelDataBuffer);             //Byte 2 : G2 B2
-                }
-                numPixels++;
-            }
-
-
         }
 
         private void sendlong(ushort l)
@@ -338,16 +358,8 @@ namespace SPI_TFT
                 sendDTA(0x00); sendDTA(0x7F);
 
                 numPixels = 0;
-                if (rgbmodeCheckBox.Checked)
-                {
                     sendCMD(ST7735_COLMOD);
-                    sendDTA(0x06); //rgb666
-                }
-                else
-                {
-                    sendCMD(ST7735_COLMOD);
-                    sendDTA(0x03); //rgb444
-                }
+                    sendDTA(ST7735_RGB_MODES[BPPcomboBox.SelectedIndex]); //rgb666
                 sendCMD(ST7735_RAMWR);
                 using (var img = new Bitmap("legologo.bmp"))
 
@@ -363,9 +375,47 @@ namespace SPI_TFT
             }
         }
 
+        private void MainForm_Activated(object sender, EventArgs e)
+        {
+            BPPcomboBox.SelectedIndex = 0;
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            //D:\Prog\Media\Media\8x8font.png
+            pictureBox1.Image = new Bitmap(256, 480);
+            var g = Graphics.FromImage(pictureBox1.Image);
+
+            g.FillRectangle(new SolidBrush(Color.Black), 0, 0, 256, 480);
+            var wb = new SolidBrush(Color.White);
+            var fs = FontFamily.GenericMonospace.GetEmHeight(FontStyle.Regular);
+            var f = new Font(FontFamily.GenericMonospace, 16, FontStyle.Regular);
+            //var points = f.SizeInPoints;
+            //var pixels = points * g.DpiX / 72;
+            //var em = pixels;
+            var points = 16 * 72 / g.DpiX;
+            var em = points * fs;
+            var f2 = new Font("Consolas", 16, GraphicsUnit.Pixel);
+            f = new Font(FontFamily.GenericMonospace, 16 * g.DpiY / 72, FontStyle.Bold);
+            //ExtLog.AddLine(pixels.ToString());
+            for (var l = 2; l < 8; ++l)
+            {
+                var s = "";
+                for (var c = 0; c < 32; ++c) s += Convert.ToChar(c + (l*32));
+
+                g.DrawString(s, f2, wb, 0, (l-2) * 16);
+            }
+            for (var l = 10; l < 64; ++l)
+            {
+                var s = "";
+                for (var c = 0; c < 32; ++c) s += Convert.ToChar(c + (l * 32));
+
+                g.DrawString(s, f2, wb, 0, (l - 4) * 16);
+            }
 
 
 
+        }
     }
 
     public static class ExtLog

@@ -116,11 +116,16 @@ namespace USB_Interface_v2_Test
             {
                 textBox2.Clear();
                 sb.Clear();
+                sb.AppendLine("## [Output] - [Input ]");
+                sb.AppendLine("b  76543210 - 76543210");
+                sb.AppendLine();
                 for (var i = 0; i < usb.dataSize; i++)
                 {
                     sb.Append(i.ToString("D2"));
                     sb.Append(" ");
-                    sb.AppendLine(Convert.ToString(outDataCheckbox.Checked ? usb.OutputBuffer[i]:usbData[i], 2).PadLeft(8, '0'));
+                    sb.Append(Convert.ToString(usb.OutputBuffer[i], 2).PadLeft(8, '0'));
+                    sb.Append(" - ");
+                    sb.AppendLine(Convert.ToString(usbData[i], 2).PadLeft(8, '0'));
                 }
                 textBox2.Text = sb.ToString();
 

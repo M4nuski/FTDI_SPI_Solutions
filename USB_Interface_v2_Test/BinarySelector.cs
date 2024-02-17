@@ -51,7 +51,7 @@ namespace USB_Interface_v2_Test
             res = SignalGenerator.SetBit(res, 7, checkBox8.Checked);
             
             label1.Text = res.ToString("D3");
-            label2.Text = res.ToString("x2").ToUpper();
+            label2.Text = "0x" + res.ToString("X2");//.ToUpper();
 
             Result = res;
             if (OnChange != null) OnChange();

@@ -80,6 +80,14 @@ namespace USB_Interface_v2_Test
                 return false;
             }
 
+            ExtLog.AddLine("Setting Latency");
+            ftStatus = USB_Interface.SetLatency(GlobalProperties.latency);
+            if (ftStatus != FTDI.FT_STATUS.FT_OK)
+            {
+                ExtLog.AddLine("Failed to set Latency (error " + ftStatus + ")");
+                return false;
+            }
+
             byte latency = 0;
             ftStatus = USB_Interface.GetLatency(ref latency);
             if (ftStatus != FTDI.FT_STATUS.FT_OK)

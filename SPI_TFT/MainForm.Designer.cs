@@ -44,7 +44,10 @@
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.checkBox6 = new System.Windows.Forms.CheckBox();
             this.button8 = new System.Windows.Forms.Button();
-            this.rgbmodeCheckBox = new System.Windows.Forms.CheckBox();
+            this.BPPcomboBox = new System.Windows.Forms.ComboBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.button9 = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // loadDeviceButton
@@ -64,7 +67,7 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox1.Size = new System.Drawing.Size(749, 109);
+            this.textBox1.Size = new System.Drawing.Size(521, 109);
             this.textBox1.TabIndex = 1;
             // 
             // button1
@@ -213,24 +216,45 @@
             this.button8.UseVisualStyleBackColor = true;
             this.button8.Click += new System.EventHandler(this.button8_Click);
             // 
-            // rgbmodeCheckBox
+            // BPPcomboBox
             // 
-            this.rgbmodeCheckBox.AutoSize = true;
-            this.rgbmodeCheckBox.Checked = true;
-            this.rgbmodeCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.rgbmodeCheckBox.Location = new System.Drawing.Point(271, 68);
-            this.rgbmodeCheckBox.Name = "rgbmodeCheckBox";
-            this.rgbmodeCheckBox.Size = new System.Drawing.Size(119, 17);
-            this.rgbmodeCheckBox.TabIndex = 16;
-            this.rgbmodeCheckBox.Text = "chk:666 unchk:444";
-            this.rgbmodeCheckBox.UseVisualStyleBackColor = true;
+            this.BPPcomboBox.FormattingEnabled = true;
+            this.BPPcomboBox.Items.AddRange(new object[] {
+            "444 12bits 4K",
+            "565 16bits 65K",
+            "666 18bits 262K"});
+            this.BPPcomboBox.Location = new System.Drawing.Point(280, 64);
+            this.BPPcomboBox.Name = "BPPcomboBox";
+            this.BPPcomboBox.Size = new System.Drawing.Size(121, 21);
+            this.BPPcomboBox.TabIndex = 17;
+            this.BPPcomboBox.Text = "444 12bits";
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(550, 12);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(256, 480);
+            this.pictureBox1.TabIndex = 18;
+            this.pictureBox1.TabStop = false;
+            // 
+            // button9
+            // 
+            this.button9.Location = new System.Drawing.Point(461, 245);
+            this.button9.Name = "button9";
+            this.button9.Size = new System.Drawing.Size(75, 23);
+            this.button9.TabIndex = 19;
+            this.button9.Text = "button9";
+            this.button9.UseVisualStyleBackColor = true;
+            this.button9.Click += new System.EventHandler(this.button9_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 403);
-            this.Controls.Add(this.rgbmodeCheckBox);
+            this.ClientSize = new System.Drawing.Size(823, 514);
+            this.Controls.Add(this.button9);
+            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.BPPcomboBox);
             this.Controls.Add(this.button8);
             this.Controls.Add(this.checkBox6);
             this.Controls.Add(this.checkBox5);
@@ -249,6 +273,8 @@
             this.Controls.Add(this.loadDeviceButton);
             this.Name = "MainForm";
             this.Text = "TFT SPI Controller";
+            this.Activated += new System.EventHandler(this.MainForm_Activated);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -272,7 +298,9 @@
         private System.Windows.Forms.CheckBox checkBox5;
         private System.Windows.Forms.CheckBox checkBox6;
         private System.Windows.Forms.Button button8;
-        private System.Windows.Forms.CheckBox rgbmodeCheckBox;
+        private System.Windows.Forms.ComboBox BPPcomboBox;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Button button9;
     }
 }
 
